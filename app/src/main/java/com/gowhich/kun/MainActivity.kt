@@ -3,14 +3,17 @@ package com.gowhich.kun
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import com.gowhich.kun.ui.theme.KunTheme
+import com.gowhich.kun.ui.theme.md_theme_light_background
 
 //import com.gowhich.kun.ui.theme.KunTheme
 
@@ -20,37 +23,60 @@ class MainActivity: ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            KunTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    KunApp()
-                }
-            }
+            MainContainer()
         }
     }
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Preview
 @Composable
-fun KunApp() {
-    Scaffold(
-        topBar = {
-            TopBar()
-        }
-    ) {
-        LazyColumn(contentPadding = it) {  }
+fun MainContainer() {
+    Column(
+        Modifier.fillMaxWidth().background(Color.Gray),
+        horizontalAlignment = Alignment.Start) {
+        Text("Hello", color = Color.Blue)
+        Text("World", color = Color.Yellow)
     }
+
 }
 
-@Composable
-fun TopBar(modifier: Modifier = Modifier) {
-    CenterAlignedTopAppBar(
-        title = {
-            Text("roboto")
-        },
-        modifier = modifier
-    )
-}
+//
+//@Composable
+//@Preview
+//fun Item() {
+//    Column (
+//        modifier = Modifier.fillMaxSize(),
+//            ) {
+//        Column {
+//            Column(modifier = Modifier.fillMaxSize()) {
+//                Text("hi")
+//            }
+//        }
+//    }
+//}
+//
+//@Preview
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun KunApp() {
+//    Scaffold(
+//        topBar = {
+//            TopBar()
+//        }
+//    ) {
+//        LazyColumn(contentPadding = it) {
+//
+//        }
+//    }
+//}
+//
+//@Composable
+//fun TopBar(modifier: Modifier = Modifier) {
+//    CenterAlignedTopAppBar(
+//        title = {
+//            Text("roboto")
+//        },
+//        modifier = modifier
+//    )
+//}
