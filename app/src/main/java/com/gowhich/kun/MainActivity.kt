@@ -12,6 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.gowhich.kun.ui.theme.KunTheme
 import com.gowhich.kun.ui.theme.md_theme_light_background
 
@@ -33,10 +35,37 @@ class MainActivity: ComponentActivity() {
 @Composable
 fun MainContainer() {
     Column(
-        Modifier.fillMaxWidth().background(Color.Gray),
+        Modifier
+            .fillMaxWidth()
+            .fillMaxHeight()
+            .background(Color.Gray),
         horizontalAlignment = Alignment.Start) {
-        Text("Hello", color = Color.Blue)
-        Text("World", color = Color.Yellow)
+
+        Spacer(modifier = Modifier
+            .height(88.dp)
+            .fillMaxWidth()
+            .background(Color.Red))
+
+        Column(
+            modifier = Modifier
+                .height(88.dp)
+                .background(Color.Blue)
+                .fillMaxWidth()
+                .padding(start = 32.dp, end = 32.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .height(88.dp)
+                    .background(Color.Yellow),
+                horizontalArrangement = Arrangement.SpaceBetween
+
+            ) {
+                Text("Hello", color = Color.Blue)
+                Text("World", color = Color.Gray)
+            }
+        }
+
+
     }
 
 }
