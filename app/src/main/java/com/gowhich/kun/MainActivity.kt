@@ -54,12 +54,18 @@ fun MainContainer() {
                 .padding(start = 32.dp, end = 32.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
                     .height(88.dp)
                     .background(Color.Yellow),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
 
             ) {
+                Button(onClick = { /*TODO*/ }) {
+                    Text("返回")
+                }
+
                 Text("Hello", color = Color.Blue)
                 Text("World", color = Color.Gray)
             }
