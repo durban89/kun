@@ -1,5 +1,6 @@
 package com.gowhich.kun
 
+import android.graphics.Paint.Style
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,7 +11,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,6 +38,7 @@ class MainActivity: ComponentActivity() {
 @Preview
 @Composable
 fun MainContainer() {
+    val fontOffset = Offset(5f, 10f)
     Column(
         Modifier
             .fillMaxWidth()
@@ -63,10 +68,20 @@ fun MainContainer() {
 
             ) {
                 Button(onClick = { /*TODO*/ }) {
-                    Text("返回")
+                    Text("返回1s")
                 }
 
-                Text("Hello", color = Color.Blue)
+                Text(
+                    text = "Hello",
+                    style = TextStyle(
+                        fontSize = 30.sp,
+                        shadow = Shadow(
+                            color = Color.Red,
+                            offset = fontOffset,
+                            blurRadius = 5f
+                        )
+                    )
+                )
                 Text("World", color = Color.Gray)
             }
         }
