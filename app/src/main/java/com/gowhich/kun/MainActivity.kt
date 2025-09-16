@@ -7,6 +7,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -84,11 +86,42 @@ fun MainContainer() {
                 )
                 Text("World", color = Color.Gray)
             }
+
+
         }
 
+        MessageList()
 
     }
 
+}
+
+@Composable
+fun MessageList() {
+    val messages: List<String> = listOf("1", "2", "3", "4", "5", "6", "7")
+    Column(
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .background(color = Color.Gray)
+    ) {
+
+        messages.forEach { message ->
+            Row(
+                modifier = Modifier
+                    .height(100.dp)
+                    .padding(start = 32.dp, end = 32.dp)
+                    .fillMaxWidth()
+                    .background(color = Color.Blue)
+            ) {
+                Text(text = message, style = TextStyle(color = Color.White))
+            }
+
+            Spacer(modifier = Modifier
+                .height(10.dp)
+                .fillMaxWidth()
+                .background(Color.Red))
+        }
+    }
 }
 
 //
