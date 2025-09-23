@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Kun" parent="Theme.Material3.Light.NoActionBar" >
+    <!-- 自定义主题：父主题必须是 Theme.Material3.Light.NoActionBar（无 android: 前缀！） -->
+    <style name="AppTheme.Fullscreen" parent="Theme.Material3.Light">
+
         <!-- 全屏必需：允许内容延伸到刘海屏/状态栏 -->
         <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="o_mr1">shortEdges</item>
     </style>
