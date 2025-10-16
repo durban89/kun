@@ -1,16 +1,111 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-/.idea/inspectionProfiles
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+# ==============================
+# 1. IDE 配置文件（本地个性化配置）
+# ==============================
+# Android Studio/IntelliJ 核心本地配置
+.idea/
+# 若团队需共享部分配置（如代码风格），取消下方对应注释（!表示不忽略）
+# !.idea/codeStyles/
+# !.idea/inspectionProfiles/
+# 单独列出关键本地文件（防止上述规则被意外覆盖）
+.idea/AndroidProjectSystem.xml
+.idea/deploymentTargetSelector.xml
+.idea/runConfigurations.xml
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/libraries/
+
+# Eclipse 相关（若项目无Eclipse依赖可删除）
+.classpath
+.project
+.settings/
+
+# VS Code 相关（若项目无VS Code依赖可删除）
+.vscode/
+*.code-workspace
+
+
+# ==============================
+# 2. 构建输出文件（编译生成产物）
+# ==============================
+# 模块构建目录（如 app/build、module1/build）
+*/build/
+# 项目根目录构建目录
+build/
+# 混淆映射文件（可选，若需保留混淆记录可删除此条）
+proguard-rules.pro
+mapping.txt
+dump.txt
+seeds.txt
+
+
+# ==============================
+# 3. 依赖与缓存文件
+# ==============================
+# Gradle 本地缓存
+.gradle/
+# Gradle 包装器（只保留配置文件，排除jar包）
+gradle/wrapper/gradle-wrapper.jar
+# Maven 本地缓存（若用Maven管理依赖）
+.m2/
+# 本地依赖缓存（如aar临时文件）
 local.properties
+# NDK 相关缓存（若项目无NDK依赖可删除）
+.ndk/
+# Kotlin 编译缓存
+.kotlin/
+.kotlin_module
+
+
+# ==============================
+# 4. 设备与运行相关文件
+# ==============================
+# 模拟器/真机日志
+logcat/
+*.log
+# 设备调试临时文件
+.android/
+# 运行配置临时文件（共享配置建议用 .run/ 目录，见下方）
+.run/
+# 签名文件（敏感信息，绝对不能提交）
+*.keystore
+*.jks
+*.key
+signing.properties
+
+
+# ==============================
+# 5. 临时与敏感文件
+# ==============================
+# 系统临时文件
+*.tmp
+*.swp
+*.swo
+# Mac 系统文件
+.DS_Store
+# Windows 系统文件
+Thumbs.db
+# 压缩包/备份文件
+*.zip
+*.tar.gz
+*.bak
+# 本地测试数据（如测试图片、数据库文件）
+test-data/
+sample-data/
+
+
+# ==============================
+# 6. 其他特殊场景（按需启用）
+# ==============================
+# Flutter 项目（若项目无Flutter依赖可删除）
+# .flutter-plugins
+# .flutter-plugins-dependencies
+# pubspec.lock（Flutter依赖锁文件，建议提交，此处仅为示例）
+# build/flutter/
+
+# React Native 项目（若项目无RN依赖可删除）
+# node_modules/
+# npm-debug.log
+# yarn-error.log
+# ios/Pods/
+# ios/build/
