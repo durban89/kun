@@ -161,20 +161,6 @@ fun HomeScreen(navController: NavController) {
         MessageList()
 
     }
-//
-//    Column(
-//        modifier = Modifier.fillMaxSize(),
-//        horizontalAlignment = Alignment.CenterHorizontally,
-//        verticalArrangement = Arrangement.Center
-//    ) {
-//        Text("Home Screen")
-//        Button(onClick = {
-//            // 导航到详情页
-//            navController.navigate("detail")
-//        }) {
-//            Text("Go to Detail")
-//        }
-//    }
 }
 
 // 详情页
