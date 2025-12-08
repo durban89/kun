@@ -29,6 +29,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.gowhich.kun.ui.page.DetailScreen
 import com.gowhich.kun.ui.page.HomeScreen
+import com.gowhich.kun.ui.page.MusicScreen
 import kotlinx.serialization.Serializable
 
 //import com.gowhich.kun.ui.theme.KunTheme
@@ -102,6 +103,10 @@ fun MainContainer() {
         }
         composable("detail") {
             DetailScreen(navController)
+        }
+
+        composable(route="music") {
+            MusicScreen(navController)
         }
     }
 
