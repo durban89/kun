@@ -101,11 +101,12 @@ fun MainContainer() {
         composable("home") {
             HomeScreen(navController)
         }
+
         composable("detail") {
             DetailScreen(navController)
         }
 
-        composable(route="music") {
+        composable("music") {
             MusicScreen(navController)
         }
     }

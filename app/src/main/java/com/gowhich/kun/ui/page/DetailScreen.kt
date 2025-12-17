@@ -25,5 +25,10 @@ fun DetailScreen(navController: NavController) {
         }) {
             Text("Go Back")
         }
+        Button(onClick = {
+            navController.navigate("music")
+        }) {
+            Text("Go to Music")
+        }
     }
 }
