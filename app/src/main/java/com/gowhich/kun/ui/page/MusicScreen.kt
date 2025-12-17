@@ -1,5 +1,6 @@
 package com.gowhich.kun.ui.page
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.LinearProgressIndicator
@@ -26,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 
 @Composable
 fun MusicScreen(navController: NavController) {
@@ -38,6 +41,7 @@ fun MusicScreen(navController: NavController) {
         MusicBackground()
 
         // 进度条
+        MusicProgress()
 
         // 操作按钮
 //            上一曲 播放/暂停 下一曲
@@ -47,10 +51,15 @@ fun MusicScreen(navController: NavController) {
 @Composable
 @Preview
 fun MusicBackground() {
+    val imageUrl = "https://img-blog.csdnimg.cn/20240101000000.jpg"
     Row(
         modifier = Modifier.fillMaxWidth().height(400.dp).background(Color.Red)
     ) {
-
+        AsyncImage(
+            model = imageUrl,
+            contentDescription = "专辑图片",
+            modifier = Modifier.wrapContentWidth().height(400.dp)
+        )
     }
 }
 
