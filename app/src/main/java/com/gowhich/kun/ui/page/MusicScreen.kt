@@ -1,9 +1,6 @@
 package com.gowhich.kun.ui.page
 
-import android.R
 import android.util.Log
-import android.widget.StackView
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,31 +10,33 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import java.lang.invoke.MutableCallSite
 
 private const val TAG: String = "MusicScreen"
 
@@ -56,16 +55,58 @@ fun MusicScreen(navController: NavController) {
         // 进度条
         MusicProgress()
 
+        // 进度条slider
+        MusicSlider()
+
         // 操作按钮
 //            上一曲 播放/暂停 下一曲
     }
 }
-@Preview
-@Composable
-fun MusicBackgroundPreview() {
-    MusicBackground(imageUrl = null)
-}
 
+@Composable
+fun MusicSlider(
+    modifier: Modifier = Modifier
+) {
+
+    var sliderPosition by remember { mutableFloatStateOf(0f) }
+
+    Box(
+        modifier = Modifier.fillMaxWidth().height(45.dp)
+            .background(Color.LightGray),
+    ) {
+
+        Slider(
+            value = sliderPosition,
+            onValueChange = {
+                sliderPosition = it
+            },
+            modifier = Modifier.padding(start = 50.dp, end = 50.dp)
+        )
+
+        Row (
+            modifier = Modifier.fillMaxWidth().height(45.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                modifier = Modifier.width(50.dp),
+                text = "11:00",
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                fontSize = 12.sp
+            )
+
+            Text(
+                modifier = Modifier.width(50.dp),
+                text = "12:00",
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                fontSize = 12.sp
+            )
+        }
+    }
+
+}
 
 
 @Composable
@@ -132,4 +173,21 @@ fun MusicProgress() {
             color = Color.White
         ), modifier = Modifier.padding(start = 15.dp, end = 15.dp).wrapContentWidth())
     }
+}
+
+@Composable
+fun MusicBackgroundPreview() {
+    MusicBackground(imageUrl = null)
+}
+
+@Preview
+@Composable
+fun MusicSliderPreview() {
+    MusicSlider()
+}
+
+@Preview
+@Composable
+fun MusicProgressPreview() {
+    MusicProgress()
 }
