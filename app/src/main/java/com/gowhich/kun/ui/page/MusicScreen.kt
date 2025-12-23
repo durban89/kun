@@ -1,6 +1,7 @@
 package com.gowhich.kun.ui.page
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -27,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -37,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.gowhich.kun.R
 
 private const val TAG: String = "MusicScreen"
 
@@ -60,6 +64,59 @@ fun MusicScreen(navController: NavController) {
 
         // 操作按钮
 //            上一曲 播放/暂停 下一曲
+        MusicPlayAction()
+    }
+}
+
+@Composable
+fun MusicPlayAction() {
+    Row(
+        modifier = Modifier.height(48.dp).fillMaxSize()
+            .background(color = Color.Red),
+        horizontalArrangement = Arrangement.Center
+
+    ) {
+        Button(
+            modifier = Modifier.width(48.dp).height(48.dp),
+            onClick = {
+                // 上一首歌
+            }
+        ) {
+            Image(
+                painterResource(R.drawable.icons_forward_50),
+                contentDescription = "上一曲",
+                modifier = Modifier.width(48.dp).height(48.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
+
+        Button(
+            modifier = Modifier.width(48.dp).height(48.dp),
+            onClick = {
+                // 暂停 或者 开始
+            }
+        ) {
+            Image(
+                painterResource(R.drawable.icons_play_48),
+                contentDescription = "上一曲",
+                modifier = Modifier.width(48.dp).height(48.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
+
+        Button(
+            modifier = Modifier.width(48.dp).height(48.dp),
+            onClick = {
+                // 下一首歌
+            }
+        ) {
+            Image(
+                painterResource(R.drawable.icons_forward_50),
+                contentDescription = "上一曲",
+                modifier = Modifier.width(48.dp).height(48.dp),
+                contentScale = ContentScale.Fit
+            )
+        }
     }
 }
 
@@ -178,6 +235,12 @@ fun MusicProgress() {
 @Composable
 fun MusicBackgroundPreview() {
     MusicBackground(imageUrl = null)
+}
+
+@Preview
+@Composable
+fun MusicPlayActionPreview() {
+    MusicPlayAction()
 }
 
 @Preview
