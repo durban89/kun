@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -25,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
@@ -71,13 +75,17 @@ fun MusicScreen(navController: NavController) {
 @Composable
 fun MusicPlayAction() {
     Row(
-        modifier = Modifier.height(48.dp).fillMaxSize()
-            .background(color = Color.Red),
-        horizontalArrangement = Arrangement.Center
+        modifier = Modifier.height(48.dp).fillMaxWidth()
+            .background(color = Color.Gray)
+            .padding(start = 10.dp, end = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
 
     ) {
         Button(
-            modifier = Modifier.width(48.dp).height(48.dp),
+            modifier = Modifier.width(48.dp)
+                .height(48.dp),
+            contentPadding = PaddingValues(10.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             onClick = {
                 // 上一首歌
             }
@@ -85,35 +93,37 @@ fun MusicPlayAction() {
             Image(
                 painterResource(R.drawable.icons_forward_50),
                 contentDescription = "上一曲",
-                modifier = Modifier.width(48.dp).height(48.dp),
-                contentScale = ContentScale.Fit
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.rotate(180f)
             )
         }
 
         Button(
             modifier = Modifier.width(48.dp).height(48.dp),
+            contentPadding = PaddingValues(10.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             onClick = {
                 // 暂停 或者 开始
             }
         ) {
             Image(
                 painterResource(R.drawable.icons_play_48),
-                contentDescription = "上一曲",
-                modifier = Modifier.width(48.dp).height(48.dp),
+                contentDescription = "播放或暂停",
                 contentScale = ContentScale.Fit
             )
         }
 
         Button(
             modifier = Modifier.width(48.dp).height(48.dp),
+            contentPadding = PaddingValues(10.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             onClick = {
                 // 下一首歌
             }
         ) {
             Image(
                 painterResource(R.drawable.icons_forward_50),
-                contentDescription = "上一曲",
-                modifier = Modifier.width(48.dp).height(48.dp),
+                contentDescription = "下一曲",
                 contentScale = ContentScale.Fit
             )
         }
@@ -243,14 +253,14 @@ fun MusicPlayActionPreview() {
     MusicPlayAction()
 }
 
-@Preview
-@Composable
-fun MusicSliderPreview() {
-    MusicSlider()
-}
-
-@Preview
-@Composable
-fun MusicProgressPreview() {
-    MusicProgress()
-}
+//@Preview
+//@Composable
+//fun MusicSliderPreview() {
+//    MusicSlider()
+//}
+//
+//@Preview
+//@Composable
+//fun MusicProgressPreview() {
+//    MusicProgress()
+//}
