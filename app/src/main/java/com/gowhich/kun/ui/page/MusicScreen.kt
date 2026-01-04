@@ -50,39 +50,119 @@ private const val TAG: String = "MusicScreen"
 
 @Composable
 fun MusicScreen(navController: NavController) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // 背景图
-        MusicBackground(
-            imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png"
-        )
+    Box() {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // 背景图
+            MusicBackground(
+                imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png"
+            )
 
-        // 进度条
-        MusicProgress()
+            // 进度条
+            MusicProgress()
 
-        // 进度条slider
-        MusicSlider()
+            // 进度条slider
+            MusicSlider()
 
-        // 操作按钮
+            // 操作按钮
 //            上一曲 播放/暂停 下一曲
-        MusicPlayAction()
+            MusicPlayAction()
+        }
+
+        MusicNavigator(navController)
+
+    }
+}
+
+
+@Composable
+fun MusicNavigator(navController: NavController) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .background(color = Color.Gray)
+            .padding(start = 10.dp, end = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            modifier = Modifier
+                .width(48.dp)
+                .height(48.dp)
+        ) {
+            Button(
+                modifier = Modifier
+                    .width(48.dp)
+                    .height(48.dp),
+                contentPadding = PaddingValues(10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                onClick = {
+                    navController.popBackStack()
+                }
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.icons_back),
+                    contentDescription = "返回",
+                    contentScale = ContentScale.Fit
+                )
+            }
+
+        }
+
+        Row(
+            modifier = Modifier
+                .wrapContentWidth()
+                .height(48.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "详情"
+            )
+        }
+
+        Row(
+            modifier = Modifier
+                .width(48.dp)
+                .height(48.dp)
+        ) {
+            Button(
+                modifier = Modifier
+                    .width(48.dp)
+                    .height(48.dp),
+                contentPadding = PaddingValues(10.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                onClick = {
+
+                }
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.icons_more),
+                    contentDescription = "更多",
+                    contentScale = ContentScale.Fit
+                )
+            }
+        }
     }
 }
 
 @Composable
 fun MusicPlayAction() {
     Row(
-        modifier = Modifier.height(48.dp).fillMaxWidth()
+        modifier = Modifier
+            .height(48.dp)
+            .fillMaxWidth()
             .background(color = Color.Gray)
             .padding(start = 10.dp, end = 10.dp),
         horizontalArrangement = Arrangement.SpaceBetween
 
     ) {
         Button(
-            modifier = Modifier.width(48.dp)
+            modifier = Modifier
+                .width(48.dp)
                 .height(48.dp),
             contentPadding = PaddingValues(10.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
@@ -99,7 +179,9 @@ fun MusicPlayAction() {
         }
 
         Button(
-            modifier = Modifier.width(48.dp).height(48.dp),
+            modifier = Modifier
+                .width(48.dp)
+                .height(48.dp),
             contentPadding = PaddingValues(10.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             onClick = {
@@ -114,7 +196,9 @@ fun MusicPlayAction() {
         }
 
         Button(
-            modifier = Modifier.width(48.dp).height(48.dp),
+            modifier = Modifier
+                .width(48.dp)
+                .height(48.dp),
             contentPadding = PaddingValues(10.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             onClick = {
@@ -138,7 +222,9 @@ fun MusicSlider(
     var sliderPosition by remember { mutableFloatStateOf(0f) }
 
     Box(
-        modifier = Modifier.fillMaxWidth().height(45.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(45.dp)
             .background(Color.LightGray),
     ) {
 
@@ -150,8 +236,10 @@ fun MusicSlider(
             modifier = Modifier.padding(start = 50.dp, end = 50.dp)
         )
 
-        Row (
-            modifier = Modifier.fillMaxWidth().height(45.dp),
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(45.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -182,7 +270,9 @@ fun MusicBackground(
     modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = Modifier.fillMaxWidth().height(400.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(400.dp)
             .background(Color.LightGray)
     ) {
         AsyncImage(
@@ -192,7 +282,9 @@ fun MusicBackground(
                 .build(),
             contentDescription = "专辑图片",
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxWidth().height(400.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(400.dp),
             onLoading = {
                 Log.d(TAG, "图片加载中：$imageUrl")
             },
@@ -211,34 +303,48 @@ fun MusicBackground(
 fun MusicProgress() {
     val progress = remember { mutableFloatStateOf(0.5f) }
 
-    Row (
-        modifier = Modifier.background(Color.Blue).height(45.dp).fillMaxSize(),
+    Row(
+        modifier = Modifier
+            .background(Color.Blue)
+            .height(45.dp)
+            .fillMaxSize(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text("11:00",
+        Text(
+            "11:00",
             style = TextStyle(
-            fontSize = 15.sp,
-            color = Color.White
-        ), modifier = Modifier.padding(start = 15.dp, end = 15.dp).wrapContentWidth())
+                fontSize = 15.sp,
+                color = Color.White
+            ), modifier = Modifier
+                .padding(start = 15.dp, end = 15.dp)
+                .wrapContentWidth()
+        )
 
-        Column (
-            modifier = Modifier.height(10.dp).wrapContentWidth(),
+        Column(
+            modifier = Modifier
+                .height(10.dp)
+                .wrapContentWidth(),
         ) {
             LinearProgressIndicator(
-            progress = { progress.floatValue },
-            modifier = Modifier.height(10.dp).
-                width(200.dp),
-            color = Color.Red,
-            trackColor = Color.Gray,
-            strokeCap = StrokeCap.Round,
+                progress = { progress.floatValue },
+                modifier = Modifier
+                    .height(10.dp)
+                    .width(200.dp),
+                color = Color.Red,
+                trackColor = Color.Gray,
+                strokeCap = StrokeCap.Round,
             )
         }
 
-        Text("12:00", style = TextStyle(
-            fontSize = 15.sp,
-            color = Color.White
-        ), modifier = Modifier.padding(start = 15.dp, end = 15.dp).wrapContentWidth())
+        Text(
+            "12:00", style = TextStyle(
+                fontSize = 15.sp,
+                color = Color.White
+            ), modifier = Modifier
+                .padding(start = 15.dp, end = 15.dp)
+                .wrapContentWidth()
+        )
     }
 }
 
