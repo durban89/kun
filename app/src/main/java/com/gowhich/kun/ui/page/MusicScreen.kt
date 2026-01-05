@@ -83,9 +83,11 @@ fun MusicNavigator(navController: NavController) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp)
-            .background(color = Color.Gray)
+            .height(80.dp)
+            .padding(top = 32.dp)
+            .background(color = Color.Transparent)
             .padding(start = 10.dp, end = 10.dp),
+
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
