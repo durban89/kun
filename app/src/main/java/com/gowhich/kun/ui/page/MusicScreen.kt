@@ -1,6 +1,9 @@
 package com.gowhich.kun.ui.page
 
+import android.content.ContentResolver
+import android.net.Uri
 import android.util.Log
+import androidx.annotation.OptIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,10 +24,13 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,15 +47,95 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.RawResourceDataSource
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.gowhich.kun.R
+import kotlinx.coroutines.delay
 
 private const val TAG: String = "MusicScreen"
 
+@OptIn(UnstableApi::class)
 @Composable
 fun MusicScreen(navController: NavController) {
+    val mediaUrl = "https://storage.googleapis.com/exoplayer-test-media-0/play.mp3"
+    val context = LocalContext.current
+
+//    val rawUri = RawResourceDataSource.buildRawResourceUri(R.raw.test2)
+
+    val rawUri = Uri.Builder()
+        .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE) // 指定安卓资源scheme
+        .path(R.raw.test2.toString()) // 资源ID转为字符串作为path
+        .build()
+
+    // 创建并缓存ExoPlayer实例（remember避免重组重建）
+    val exoPlayer = remember(context) {
+        ExoPlayer.Builder(context)
+            .build().apply {
+            // 设置播放源
+            val mediaItem = MediaItem.fromUri(mediaUrl)
+            setMediaItem(mediaItem)
+
+            // 准备播放器（预加载）
+            prepare()
+
+            // 是否静音
+            volume = 1f
+
+            // 是否循环播放
+            repeatMode = Player.REPEAT_MODE_ALL
+        }
+    }
+
+    // 管理播放器生命周期（页面销毁时释放资源）
+    DisposableEffect(Unit) {
+        onDispose {
+            exoPlayer.release()
+        }
+    }
+
+    // 监听播放状态
+    val isPlaying = remember { mutableStateOf(false) }
+    exoPlayer.addListener(object : Player.Listener {
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            super.onPlaybackStateChanged(playbackState)
+
+            isPlaying.value = playbackState == Player.STATE_READY && exoPlayer.isPlaying
+
+            Log.d(TAG, "onPlaybackStateChanged: ${playbackState} ${exoPlayer.isPlaying}")
+        }
+
+        override fun onIsPlayingChanged(newIsPlaying: Boolean) {
+            super.onIsPlayingChanged(newIsPlaying)
+            Log.d(TAG, "onIsPlayingChanged: $isPlaying")
+            isPlaying.value = newIsPlaying
+        }
+    })
+
+    // 监听播放进度(每秒更新一次)
+    val currentPosition = remember { mutableStateOf(0L) }
+    val totalPosition = remember { mutableStateOf(0L) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(exoPlayer) {
+        totalPosition.value = exoPlayer.duration
+
+        // 循环更新进度
+        while (true) {
+            delay(1000) // 延迟1秒更新
+            if (exoPlayer.isPlaying) {
+                totalPosition.value = exoPlayer.duration
+                currentPosition.value = exoPlayer.currentPosition
+            }
+        }
+    }
+
+
     Box() {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -62,14 +148,17 @@ fun MusicScreen(navController: NavController) {
             )
 
             // 进度条
-            MusicProgress()
+//            MusicProgress()
 
             // 进度条slider
             MusicSlider()
 
             // 操作按钮
 //            上一曲 播放/暂停 下一曲
-            MusicPlayAction()
+            MusicPlayAction(
+                exoPlayer = exoPlayer,
+                isPlaying = isPlaying.value
+            )
         }
 
         MusicNavigator(navController)
@@ -152,7 +241,10 @@ fun MusicNavigator(navController: NavController) {
 }
 
 @Composable
-fun MusicPlayAction() {
+fun MusicPlayAction(
+    exoPlayer: ExoPlayer,
+    isPlaying: Boolean,
+) {
     Row(
         modifier = Modifier
             .height(48.dp)
@@ -188,10 +280,11 @@ fun MusicPlayAction() {
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
             onClick = {
                 // 暂停 或者 开始
+                if (isPlaying) exoPlayer.pause() else exoPlayer.play()
             }
         ) {
             Image(
-                painterResource(R.drawable.icons_play_48),
+                painterResource(if (isPlaying) R.drawable.icons_pause_48 else R.drawable.icons_play_48),
                 contentDescription = "播放或暂停",
                 contentScale = ContentScale.Fit
             )
@@ -355,11 +448,11 @@ fun MusicBackgroundPreview() {
     MusicBackground(imageUrl = null)
 }
 
-@Preview
-@Composable
-fun MusicPlayActionPreview() {
-    MusicPlayAction()
-}
+//@Preview
+//@Composable
+//fun MusicPlayActionPreview() {
+//    MusicPlayAction()
+//}
 
 //@Preview
 //@Composable

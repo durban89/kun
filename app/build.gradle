@@ -5,8 +5,7 @@ plugins {
 
 android {
     namespace 'com.gowhich.kun'
-    compileSdk 34
-    buildToolsVersion "33.0.1"
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.gowhich.kun"
@@ -84,6 +83,12 @@ dependencies {
     // 可选：支持 GIF/WEBP 动图（如需加载动图添加）
 //    implementation "io.coil-kt:coil-gif:2.5.0"
 //    implementation "io.coil-kt:coil-webp:2.5.0"
+
+    // 播放器媒体库
+    implementation("androidx.media3:media3-exoplayer:1.9.0") // 核心播放库
+    implementation("androidx.media3:media3-ui:1.9.0") // UI组件（StyledPlayerView）
+    implementation("androidx.media3:media3-ui-compose:1.9.0") // Compose适配
+    implementation("androidx.media3:media3-common:1.9.0") // 核心基础类
 
     // 调试工具
     debugImplementation 'androidx.compose.ui:ui-tooling'
