@@ -60,6 +60,13 @@ import kotlinx.coroutines.delay
 
 private const val TAG: String = "MusicScreen"
 
+// 工具方法：格式化时间
+fun formatTime(millis: Long): String {
+    val seconds = (millis / 1000) % 60
+    val minutes = (millis / 1000 / 60) % 60
+    return String.format("%02d:%02d", minutes, seconds)
+}
+
 @OptIn(UnstableApi::class)
 @Composable
 fun MusicScreen(navController: NavController) {
@@ -151,7 +158,14 @@ fun MusicScreen(navController: NavController) {
 //            MusicProgress()
 
             // 进度条slider
-            MusicSlider()
+            MusicSlider(
+                currentPosition = currentPosition.value,
+                totalDuration = totalPosition.value,
+                onPositionChange = {
+                    exoPlayer.seekTo(it)
+                },
+                enabled = exoPlayer.playbackState == Player.STATE_READY
+            )
 
             // 操作按钮
 //            上一曲 播放/暂停 下一曲
@@ -311,10 +325,19 @@ fun MusicPlayAction(
 
 @Composable
 fun MusicSlider(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    currentPosition: Long = 0L,
+    totalDuration: Long = 0L,
+    onPositionChange: (Long) -> Unit = {},
+    enabled: Boolean = true
 ) {
 
-    var sliderPosition by remember { mutableFloatStateOf(0f) }
+    // 计算滑块当前值（转换为Float，适配Slider）
+    // 处理总时长为0的情况（避免除以0/滑块范围错误）
+    val sliderMaxValue = if (totalDuration <= 0) 1f else totalDuration.toFloat()
+    val sliderPosition = if (totalDuration <= 0) 0f else currentPosition.toFloat()
+
+//    var sliderPosition by remember { mutableFloatStateOf(0f) }
 
     Box(
         modifier = Modifier
@@ -325,9 +348,11 @@ fun MusicSlider(
 
         Slider(
             value = sliderPosition,
-            onValueChange = {
-                sliderPosition = it
+            onValueChange = { newPosition ->
+                onPositionChange(newPosition.toLong())
             },
+            valueRange = 0f..sliderMaxValue,
+            enabled = enabled,
             modifier = Modifier.padding(start = 50.dp, end = 50.dp)
         )
 
@@ -340,7 +365,7 @@ fun MusicSlider(
         ) {
             Text(
                 modifier = Modifier.width(50.dp),
-                text = "11:00",
+                text = formatTime(currentPosition),
                 color = Color.White,
                 textAlign = TextAlign.Center,
                 fontSize = 12.sp
@@ -348,7 +373,7 @@ fun MusicSlider(
 
             Text(
                 modifier = Modifier.width(50.dp),
-                text = "12:00",
+                text = formatTime(totalDuration),
                 color = Color.White,
                 textAlign = TextAlign.Center,
                 fontSize = 12.sp
