@@ -1,11 +1,15 @@
 package com.gowhich.kun.ui.page
 
+import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.net.Uri
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
@@ -22,12 +27,15 @@ import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -41,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
@@ -62,16 +71,20 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.gowhich.kun.R
+import com.gowhich.kun.ui.theme.DarkColorScheme
+import com.gowhich.kun.ui.theme.LightColorScheme
 import kotlinx.coroutines.delay
 
 private const val TAG: String = "MusicScreen"
 
 // 工具方法：格式化时间
+@SuppressLint("DefaultLocale")
 fun formatTime(millis: Long): String {
     val seconds = (millis / 1000) % 60
     val minutes = (millis / 1000 / 60) % 60
     return String.format("%02d:%02d", minutes, seconds)
 }
+
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -90,19 +103,19 @@ fun MusicScreen(navController: NavController) {
     val exoPlayer = remember(context) {
         ExoPlayer.Builder(context)
             .build().apply {
-            // 设置播放源
-            val mediaItem = MediaItem.fromUri(mediaUrl)
-            setMediaItem(mediaItem)
+                // 设置播放源
+                val mediaItem = MediaItem.fromUri(mediaUrl)
+                setMediaItem(mediaItem)
 
-            // 准备播放器（预加载）
-            prepare()
+                // 准备播放器（预加载）
+                prepare()
 
-            // 是否静音
-            volume = 1f
+                // 是否静音
+                volume = 1f
 
-            // 是否循环播放
-            repeatMode = Player.REPEAT_MODE_ALL
-        }
+                // 是否循环播放
+                repeatMode = Player.REPEAT_MODE_ALL
+            }
     }
 
     // 管理播放器生命周期（页面销毁时释放资源）
@@ -148,42 +161,59 @@ fun MusicScreen(navController: NavController) {
         }
     }
 
+    val darkTheme = isSystemInDarkTheme()
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
-    Box() {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // 背景图
-            MusicBackground(
-                imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png"
-            )
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = MaterialTheme.typography
+    ) {
+        Box() {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // 背景图
+                MusicBackground(
+                    imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png"
+                )
 
-            // 进度条
+                // 进度条
 //            MusicProgress()
 
-            // 进度条slider
-            MusicSlider(
-                currentPosition = currentPosition.value,
-                totalDuration = totalPosition.value,
-                onPositionChange = {
-                    exoPlayer.seekTo(it)
-                },
-                enabled = exoPlayer.playbackState == Player.STATE_READY
-            )
+                // 进度条slider
+                MusicSlider(
+                    currentPosition = currentPosition.value,
+                    totalDuration = totalPosition.value,
+                    onPositionChange = {
+                        exoPlayer.seekTo(it)
+                    },
+                    enabled = exoPlayer.playbackState == Player.STATE_READY
+                )
 
-            // 操作按钮
+                // 操作按钮
 //            上一曲 播放/暂停 下一曲
-            MusicPlayAction(
-                exoPlayer = exoPlayer,
-                isPlaying = isPlaying.value
-            )
+                MusicPlayAction(
+                    isPlaying = isPlaying.value,
+                    onPlayOrPauseClick = {
+                        if (isPlaying.value) exoPlayer.pause() else exoPlayer.play()
+                    },
+                    onPreviewClick = {
+
+                    },
+                    onNextClick = {
+
+                    }
+                )
+            }
+
+            MusicNavigator(navController)
+
         }
-
-        MusicNavigator(navController)
-
     }
+
+
 }
 
 
@@ -262,67 +292,89 @@ fun MusicNavigator(navController: NavController) {
 
 @Composable
 fun MusicPlayAction(
-    exoPlayer: ExoPlayer,
     isPlaying: Boolean,
+    onPlayOrPauseClick: () -> Unit = {},
+    onPreviewClick: () -> Unit = {},
+    onNextClick: () -> Unit = {}
 ) {
+
+    val colorScheme = MaterialTheme.colorScheme
+
+
+    val playButtonModifier = Modifier.size(83.dp)
+    val buttonColors = ButtonDefaults.buttonColors(
+        containerColor = Color.Transparent, // 透明背景，继承父布局的surfaceVariant
+        contentColor = colorScheme.primary, // 图标用主题主色
+        disabledContentColor = colorScheme.onSurface.copy(alpha = 0.5f), // 禁用态半透明
+    )
+
+    // 通用按钮配置（提取复用，减少冗余）
+    val buttonModifier = Modifier.size(48.dp)
+
     Row(
         modifier = Modifier
-            .height(48.dp)
+            .height(83.dp)
             .fillMaxWidth()
-            .background(color = Color.Gray)
+            .background(color = colorScheme.surfaceVariant)
             .padding(start = 10.dp, end = 10.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Button(
-            modifier = Modifier
-                .width(48.dp)
-                .height(48.dp),
+            modifier = buttonModifier,
             contentPadding = PaddingValues(10.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+            colors = buttonColors,
             onClick = {
-                // 上一首歌
+                onPreviewClick()
             }
         ) {
             Image(
                 rememberVectorPainter(Icons.Default.KeyboardDoubleArrowLeft),
                 contentDescription = "上一曲",
+                modifier = Modifier
+                    .width(48.dp)
+                    .height(48.dp),
                 contentScale = ContentScale.Fit,
+                colorFilter = ColorFilter.tint(colorScheme.primary)
             )
         }
 
         Button(
-            modifier = Modifier
-                .width(48.dp)
-                .height(48.dp),
+            modifier = playButtonModifier,
             contentPadding = PaddingValues(10.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+            colors = buttonColors,
             onClick = {
                 // 暂停 或者 开始
-                if (isPlaying) exoPlayer.pause() else exoPlayer.play()
+                onPlayOrPauseClick()
             }
         ) {
             Image(
                 rememberVectorPainter(if (isPlaying) Icons.Default.PauseCircle else Icons.Default.PlayCircle),
                 contentDescription = "播放或暂停",
-                contentScale = ContentScale.Fit
+                modifier = Modifier
+                    .width(83.dp)
+                    .height(83.dp),
+                contentScale = ContentScale.Fit,
+                colorFilter = ColorFilter.tint(colorScheme.primary)
             )
         }
 
         Button(
-            modifier = Modifier
-                .width(48.dp)
-                .height(48.dp),
+            modifier = buttonModifier,
             contentPadding = PaddingValues(10.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+            colors = buttonColors,
             onClick = {
-                // 下一首歌
+                onNextClick()
             }
         ) {
             Image(
                 rememberVectorPainter(Icons.Default.KeyboardDoubleArrowRight),
                 contentDescription = "下一曲",
-                contentScale = ContentScale.Fit
+                modifier = Modifier
+                    .width(48.dp)
+                    .height(48.dp),
+                contentScale = ContentScale.Fit,
+                colorFilter = ColorFilter.tint(colorScheme.primary)
             )
         }
     }
@@ -473,16 +525,39 @@ fun MusicProgress() {
     }
 }
 
+@Preview(
+    name = "MusicBackground - 宽屏预览",
+    showBackground = true,
+)
 @Composable
 fun MusicBackgroundPreview() {
     MusicBackground(imageUrl = null)
 }
 
-//@Preview
-//@Composable
-//fun MusicPlayActionPreview() {
-//    MusicPlayAction()
-//}
+@Composable
+private fun previewExoPlayer(): ExoPlayer {
+    val context = LocalContext.current
+    return remember {
+        ExoPlayer.Builder(context)
+            .build() // 预览中仅创建实例，不加载音频，不影响预览效果
+    }
+}
+
+@Preview(
+    name = "MusicPlayAction - 宽屏预览",
+    showBackground = true,
+    backgroundColor = 0xFF888888,
+    heightDp = 83  // 匹配组件高度
+)
+@Composable
+fun MusicPlayActionPreview() {
+    MusicPlayAction(
+        isPlaying = false,
+        onPreviewClick = {},
+        onNextClick = {},
+        onPlayOrPauseClick = {}
+    )
+}
 
 //@Preview
 //@Composable
