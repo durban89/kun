@@ -34,6 +34,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -178,9 +179,6 @@ fun MusicScreen(navController: NavController) {
                 MusicBackground(
                     imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png"
                 )
-
-                // 进度条
-//            MusicProgress()
 
                 // 进度条slider
                 MusicSlider(
@@ -394,13 +392,27 @@ fun MusicSlider(
     val sliderMaxValue = if (totalDuration <= 0) 1f else totalDuration.toFloat()
     val sliderPosition = if (totalDuration <= 0) 0f else currentPosition.toFloat()
 
-//    var sliderPosition by remember { mutableFloatStateOf(0f) }
+    val colorScheme = MaterialTheme.colorScheme
+
+    // Slider配色配置（适配主题）
+    val sliderColors = SliderDefaults.colors(
+        // 激活轨道颜色（主题主色）
+        activeTrackColor = colorScheme.primary,
+        // 未激活轨道颜色（主色半透明）
+        inactiveTrackColor = colorScheme.primary.copy(alpha = 0.3f),
+        // 滑块颜色（主题主色）
+        thumbColor = colorScheme.primary,
+        // 禁用状态配色（主题onSurfaceVariant半透明）
+        disabledActiveTrackColor = colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+        disabledInactiveTrackColor = colorScheme.onSurfaceVariant.copy(alpha = 0.1f),
+        disabledThumbColor = colorScheme.onSurfaceVariant.copy(alpha = 0.3f)
+    )
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(45.dp)
-            .background(Color.LightGray),
+            .background(color = colorScheme.surfaceVariant),
     ) {
 
         Slider(
@@ -410,7 +422,8 @@ fun MusicSlider(
             },
             valueRange = 0f..sliderMaxValue,
             enabled = enabled,
-            modifier = Modifier.padding(start = 50.dp, end = 50.dp)
+            modifier = Modifier.padding(start = 50.dp, end = 50.dp),
+            colors = sliderColors,
         )
 
         Row(
@@ -423,7 +436,7 @@ fun MusicSlider(
             Text(
                 modifier = Modifier.width(50.dp),
                 text = formatTime(currentPosition),
-                color = Color.White,
+                color = colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 fontSize = 12.sp
             )
@@ -431,7 +444,7 @@ fun MusicSlider(
             Text(
                 modifier = Modifier.width(50.dp),
                 text = formatTime(totalDuration),
-                color = Color.White,
+                color = colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 fontSize = 12.sp
             )
@@ -475,56 +488,6 @@ fun MusicBackground(
     }
 }
 
-
-@Composable
-fun MusicProgress() {
-    val progress = remember { mutableFloatStateOf(0.5f) }
-
-    Row(
-        modifier = Modifier
-            .background(Color.Blue)
-            .height(45.dp)
-            .fillMaxSize(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            "11:00",
-            style = TextStyle(
-                fontSize = 15.sp,
-                color = Color.White
-            ), modifier = Modifier
-                .padding(start = 15.dp, end = 15.dp)
-                .wrapContentWidth()
-        )
-
-        Column(
-            modifier = Modifier
-                .height(10.dp)
-                .wrapContentWidth(),
-        ) {
-            LinearProgressIndicator(
-                progress = { progress.floatValue },
-                modifier = Modifier
-                    .height(10.dp)
-                    .width(200.dp),
-                color = Color.Red,
-                trackColor = Color.Gray,
-                strokeCap = StrokeCap.Round,
-            )
-        }
-
-        Text(
-            "12:00", style = TextStyle(
-                fontSize = 15.sp,
-                color = Color.White
-            ), modifier = Modifier
-                .padding(start = 15.dp, end = 15.dp)
-                .wrapContentWidth()
-        )
-    }
-}
-
 @Preview(
     name = "MusicBackground - 宽屏预览",
     showBackground = true,
@@ -544,29 +507,99 @@ private fun previewExoPlayer(): ExoPlayer {
 }
 
 @Preview(
-    name = "MusicPlayAction - 宽屏预览",
+    name = "MusicPlayAction - 浅色主题",
     showBackground = true,
     backgroundColor = 0xFF888888,
     heightDp = 83  // 匹配组件高度
 )
 @Composable
-fun MusicPlayActionPreview() {
-    MusicPlayAction(
-        isPlaying = false,
-        onPreviewClick = {},
-        onNextClick = {},
-        onPlayOrPauseClick = {}
-    )
+fun MusicPlayActionLightPreview() {
+    CustomMusicTheme (
+        darkTheme = false
+    ) {
+        MusicPlayAction(
+            isPlaying = false,
+            onPreviewClick = {},
+            onNextClick = {},
+            onPlayOrPauseClick = {}
+        )
+    }
 }
 
-//@Preview
-//@Composable
-//fun MusicSliderPreview() {
-//    MusicSlider()
-//}
-//
+@Preview(
+    name = "MusicPlayAction - 深色主题",
+    showBackground = true,
+    backgroundColor = 0xFF888888,
+    heightDp = 83  // 匹配组件高度
+)
+@Composable
+fun MusicPlayActionDarkPreview() {
+    CustomMusicTheme (
+        darkTheme = true
+    ) {
+        MusicPlayAction(
+            isPlaying = false,
+            onPreviewClick = {},
+            onNextClick = {},
+            onPlayOrPauseClick = {}
+        )
+    }
+}
+
+@Preview(
+    name = "MusicSlider - 浅色主题",
+    showBackground = true,
+    backgroundColor = 0xFFDBE5DD, // 匹配light_surfaceVariant
+    showSystemUi = false
+)
+@Composable
+fun MusicSliderLightPreview() {
+    CustomMusicTheme (
+        darkTheme = false
+    ) {
+        MusicSlider(
+            currentPosition = 10000, // 10秒
+            totalDuration = 60000,   // 60秒
+            enabled = true
+        )
+    }
+}
+
+@Preview(
+    name = "MusicSlider - 深色主题",
+    showBackground = true,
+    backgroundColor = 0xFFDBE5DD, // 匹配light_surfaceVariant
+    showSystemUi = false
+)
+@Composable
+fun MusicSliderDarkPreview() {
+    CustomMusicTheme (
+        darkTheme = true
+    ) {
+        MusicSlider(
+            currentPosition = 10000, // 10秒
+            totalDuration = 60000,   // 60秒
+            enabled = true
+        )
+    }
+}
+
+
 //@Preview
 //@Composable
 //fun MusicProgressPreview() {
 //    MusicProgress()
 //}
+
+@Composable
+fun CustomMusicTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) {
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = MaterialTheme.typography,
+        content = content
+    )
+}
