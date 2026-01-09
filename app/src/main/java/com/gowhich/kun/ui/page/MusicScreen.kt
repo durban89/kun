@@ -5,8 +5,14 @@ import android.content.ContentResolver
 import android.net.Uri
 import android.util.Log
 import androidx.annotation.OptIn
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -22,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
@@ -50,6 +57,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -67,6 +75,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.Size
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.RawResourceDataSource
 import androidx.media3.exoplayer.ExoPlayer
@@ -114,7 +123,7 @@ fun MusicScreen(navController: NavController) {
                 // 准备播放器（预加载）
                 prepare()
 
-                // 是否静音
+                // 是否静音 0-1
                 volume = 1f
 
                 // 是否循环播放
@@ -173,40 +182,45 @@ fun MusicScreen(navController: NavController) {
         typography = MaterialTheme.typography
     ) {
         Box() {
+            // 背景图
+            MusicBackground(
+                imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png"
+            )
+
             Column(
                 modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Top,
+                verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // 背景图
-                MusicBackground(
-                    imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png"
-                )
+                Column {  }
 
-                // 进度条slider
-                MusicSlider(
-                    currentPosition = currentPosition.value,
-                    totalDuration = totalPosition.value,
-                    onPositionChange = {
-                        exoPlayer.seekTo(it)
-                    },
-                    enabled = exoPlayer.playbackState == Player.STATE_READY
-                )
+                Column {
+                    // 进度条slider
+                    MusicSlider(
+                        currentPosition = currentPosition.value,
+                        totalDuration = totalPosition.value,
+                        onPositionChange = {
+                            exoPlayer.seekTo(it)
+                        },
+                        enabled = exoPlayer.playbackState == Player.STATE_READY
+                    )
 
-                // 操作按钮
-//            上一曲 播放/暂停 下一曲
-                MusicPlayAction(
-                    isPlaying = isPlaying.value,
-                    onPlayOrPauseClick = {
-                        if (isPlaying.value) exoPlayer.pause() else exoPlayer.play()
-                    },
-                    onPreviewClick = {
+                    // 操作按钮
+                    // 上一曲 播放/暂停 下一曲
+                    MusicPlayAction(
+                        isPlaying = isPlaying.value,
+                        onPlayOrPauseClick = {
+                            if (isPlaying.value) exoPlayer.pause() else exoPlayer.play()
+                        },
+                        onPreviewClick = {
 
-                    },
-                    onNextClick = {
+                        },
+                        onNextClick = {
 
-                    }
-                )
+                        }
+                    )
+                }
+
             }
 
             MusicNavigator(navController)
@@ -219,7 +233,9 @@ fun MusicScreen(navController: NavController) {
 
 
 @Composable
-fun MusicNavigator(navController: NavController) {
+fun MusicNavigator(
+    navController: NavController
+) {
     // 从主题获取配色（自动适配浅/深色模式）
     val colorScheme = MaterialTheme.colorScheme
 
@@ -481,34 +497,135 @@ fun MusicBackground(
     imageUrl: String?,
     modifier: Modifier = Modifier
 ) {
+
+    var rotateAngle by remember { mutableStateOf(0f) }
+
+    // 从主题获取配色（自动适配浅/深色模式）
+    val colorScheme = MaterialTheme.colorScheme
+
+    rotateAngle = animateFloatAsState(
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween (
+                durationMillis = 20000,
+                easing = LinearEasing,
+            ),
+            repeatMode = RepeatMode.Restart
+        ),
+        finishedListener = { angle ->
+            Log.d(TAG, "旋转动画结束，当前角度：$angle") // 调试日志，确认动画执行
+        },
+        label = "album rotation"
+    ).value
+
+
+//    val shape = if (cornerRadius == CircleShape.cornerSize) {
+//        CircleShape
+//    } else {
+//        RoundedCornerShape(cornerRadius.dp)
+//    }
+
+    val shape = CircleShape
+
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(400.dp)
-            .background(Color.LightGray)
+            .fillMaxSize()
+            .background(color = colorScheme.surface),
+            contentAlignment = Alignment.TopCenter, // 子组件（图片）左右居中、垂直偏上
     ) {
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(imageUrl)
-                .crossfade(true)
-                .build(),
-            contentDescription = "专辑图片",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(400.dp),
-            onLoading = {
-                Log.d(TAG, "图片加载中：$imageUrl")
-            },
-            onError = { error ->
-                Log.e(TAG, "图片加载失败：$imageUrl，错误信息：${error.result.throwable.message}")
-            },
-            onSuccess = { state ->
-                Log.d(TAG, "图片加载成功：$imageUrl，尺寸：${state.result}")
+        Column (
+            modifier = Modifier.fillMaxWidth().height(493.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = modifier
+                    .padding(top = 166.dp)
+                    .size(327.dp) // 和图片同尺寸
+                    .clip(shape) // 背景色也裁剪为对应圆角/圆形
+                    .background(colorScheme.surfaceVariant) // 默认背景色（加载中/失败显示）
+            ) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(imageUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "专辑图片",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .border(
+                            width = 2.dp,
+                            color = colorScheme.primary,
+                            shape = shape
+                        )
+                        .rotate(rotateAngle),
+                    onLoading = {
+                        Log.d(TAG, "图片加载中：$imageUrl")
+                    },
+                    onError = { error ->
+                        Log.e(TAG, "图片加载失败：$imageUrl，错误信息：${error.result.throwable.message}")
+                    },
+                    onSuccess = { state ->
+                        Log.d(TAG, "图片加载成功：$imageUrl，尺寸：${state.result}")
+                    }
+                )
             }
+
+        }
+
+    }
+}
+
+
+// ========== Preview（覆盖不同场景+明暗主题） ==========
+/** 浅色主题 - 图片加载成功场景 */
+@Preview(
+    name = "MusicBackground - 浅色主题（加载成功）",
+    showBackground = true,
+    showSystemUi = true // 显示系统状态栏，更贴近实际效果
+)
+@Composable
+fun MusicBackground_Light_Success_Preview() {
+    CustomMusicTheme(darkTheme = false) {
+        MusicBackground(
+            imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png"
         )
     }
 }
+
+/** 深色主题 - 图片加载失败/空URL场景 */
+@Preview(
+    name = "MusicBackground - 深色主题（加载失败）",
+    showBackground = true,
+    showSystemUi = true
+)
+@Composable
+fun MusicBackground_Dark_Error_Preview() {
+    CustomMusicTheme(darkTheme = true) {
+        MusicBackground(
+            imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png"
+        )
+    }
+}
+
+/** 通用预览 - 自定义尺寸（验证偏上对齐） */
+@Preview(
+    name = "MusicBackground - 自定义尺寸（偏上对齐）",
+    showBackground = true,
+    widthDp = 360,
+    heightDp = 640,
+    showSystemUi = false
+)
+@Composable
+fun MusicBackground_CustomSize_Preview() {
+    CustomMusicTheme(darkTheme = false) {
+        MusicBackground(
+            imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png"
+        )
+    }
+}
+
 
 // ========== Preview（验证明暗主题效果） ==========
 @Preview(
@@ -539,15 +656,6 @@ fun MusicNavigator_Dark_Preview() {
     CustomMusicTheme(darkTheme = true) {
         MusicNavigator(navController = navController)
     }
-}
-
-@Preview(
-    name = "MusicBackground - 宽屏预览",
-    showBackground = true,
-)
-@Composable
-fun MusicBackgroundPreview() {
-    MusicBackground(imageUrl = null)
 }
 
 @Composable
