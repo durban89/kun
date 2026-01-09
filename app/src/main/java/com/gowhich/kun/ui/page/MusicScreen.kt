@@ -23,8 +23,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.ripple.rememberRipple
@@ -69,6 +71,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.RawResourceDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.gowhich.kun.R
@@ -217,6 +220,15 @@ fun MusicScreen(navController: NavController) {
 
 @Composable
 fun MusicNavigator(navController: NavController) {
+    // 从主题获取配色（自动适配浅/深色模式）
+    val colorScheme = MaterialTheme.colorScheme
+
+    // 统一按钮样式配置（与播放控件视觉风格一致）
+    val navButtonColors = ButtonDefaults.buttonColors(
+        containerColor = Color.Transparent, // 保留透明背景
+        contentColor = colorScheme.primary, // 图标用主题主色（绿系）
+    )
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -238,15 +250,19 @@ fun MusicNavigator(navController: NavController) {
                     .width(48.dp)
                     .height(48.dp),
                 contentPadding = PaddingValues(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                colors = navButtonColors,
                 onClick = {
                     navController.popBackStack()
                 }
             ) {
                 Image(
-                    painter = painterResource(R.drawable.icons_back),
+                    painter = rememberVectorPainter(Icons.Default.ArrowBackIosNew),
                     contentDescription = "返回",
-                    contentScale = ContentScale.Fit
+                    contentScale = ContentScale.Fit,
+                    colorFilter = ColorFilter.tint(colorScheme.primary),
+                    modifier = Modifier
+                        .width(48.dp)
+                        .height(48.dp),
                 )
             }
 
@@ -259,7 +275,9 @@ fun MusicNavigator(navController: NavController) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "详情"
+                text = "详情",
+                color = colorScheme.onSurface, // 文字色适配背景（浅/深色自动切换）
+                style = MaterialTheme.typography.titleMedium, // 用主题字体样式，提升视觉层级
             )
         }
 
@@ -273,15 +291,19 @@ fun MusicNavigator(navController: NavController) {
                     .width(48.dp)
                     .height(48.dp),
                 contentPadding = PaddingValues(10.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                colors = navButtonColors,
                 onClick = {
 
                 }
             ) {
                 Image(
-                    painter = painterResource(R.drawable.icons_more),
+                    painter = rememberVectorPainter(Icons.Default.MoreHoriz),
                     contentDescription = "更多",
-                    contentScale = ContentScale.Fit
+                    contentScale = ContentScale.Fit,
+                    colorFilter = ColorFilter.tint(colorScheme.primary),
+                    modifier = Modifier
+                        .width(48.dp)
+                        .height(48.dp),
                 )
             }
         }
@@ -485,6 +507,37 @@ fun MusicBackground(
                 Log.d(TAG, "图片加载成功：$imageUrl，尺寸：${state.result}")
             }
         )
+    }
+}
+
+// ========== Preview（验证明暗主题效果） ==========
+@Preview(
+    name = "MusicNavigator - 浅色主题",
+    showBackground = true,
+    backgroundColor = 0xFFFBFDF9, // 匹配light_background
+    showSystemUi = false
+)
+@Composable
+fun MusicNavigator_Light_Preview() {
+    val navController = rememberNavController()
+
+    CustomMusicTheme(darkTheme = false) {
+        MusicNavigator(navController = navController)
+    }
+}
+
+@Preview(
+    name = "MusicNavigator - 深色主题",
+    showBackground = true,
+    backgroundColor = 0xFF191C1A, // 匹配dark_background
+    showSystemUi = false
+)
+@Composable
+fun MusicNavigator_Dark_Preview() {
+    val navController = rememberNavController()
+
+    CustomMusicTheme(darkTheme = true) {
+        MusicNavigator(navController = navController)
     }
 }
 
