@@ -5,10 +5,13 @@ import android.content.ContentResolver
 import android.net.Uri
 import android.util.Log
 import androidx.annotation.OptIn
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -49,6 +52,8 @@ import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -62,6 +67,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -184,7 +190,8 @@ fun MusicScreen(navController: NavController) {
         Box() {
             // 背景图
             MusicBackground(
-                imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png"
+                imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png",
+                isPlaying = isPlaying.value
             )
 
             Column(
@@ -491,41 +498,34 @@ fun MusicSlider(
 
 }
 
-
 @Composable
 fun MusicBackground(
     imageUrl: String?,
+    isPlaying: Boolean,
     modifier: Modifier = Modifier
 ) {
-
-    var rotateAngle by remember { mutableStateOf(0f) }
-
     // 从主题获取配色（自动适配浅/深色模式）
     val colorScheme = MaterialTheme.colorScheme
 
-    rotateAngle = animateFloatAsState(
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween (
-                durationMillis = 20000,
-                easing = LinearEasing,
-            ),
-            repeatMode = RepeatMode.Restart
-        ),
-        finishedListener = { angle ->
-            Log.d(TAG, "旋转动画结束，当前角度：$angle") // 调试日志，确认动画执行
-        },
-        label = "album rotation"
-    ).value
-
-
-//    val shape = if (cornerRadius == CircleShape.cornerSize) {
-//        CircleShape
-//    } else {
-//        RoundedCornerShape(cornerRadius.dp)
-//    }
-
     val shape = CircleShape
+
+    val rotation = remember { Animatable(0f) }
+    // 3. 监听开关状态
+    LaunchedEffect(isPlaying) {
+        if (isPlaying) {
+            // 无限循环旋转
+            rotation.animateTo(
+                targetValue = rotation.value + 360f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(20000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Restart
+                )
+            )
+        } else {
+            // 停止动画
+            rotation.stop()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -559,7 +559,7 @@ fun MusicBackground(
                             color = colorScheme.primary,
                             shape = shape
                         )
-                        .rotate(rotateAngle),
+                        .rotate(rotation.value), // 应用旋转,
                     onLoading = {
                         Log.d(TAG, "图片加载中：$imageUrl")
                     },
@@ -589,7 +589,8 @@ fun MusicBackground(
 fun MusicBackground_Light_Success_Preview() {
     CustomMusicTheme(darkTheme = false) {
         MusicBackground(
-            imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png"
+            imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png",
+            isPlaying = true
         )
     }
 }
@@ -604,7 +605,8 @@ fun MusicBackground_Light_Success_Preview() {
 fun MusicBackground_Dark_Error_Preview() {
     CustomMusicTheme(darkTheme = true) {
         MusicBackground(
-            imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png"
+            imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png",
+            isPlaying = true
         )
     }
 }
@@ -621,7 +623,8 @@ fun MusicBackground_Dark_Error_Preview() {
 fun MusicBackground_CustomSize_Preview() {
     CustomMusicTheme(darkTheme = false) {
         MusicBackground(
-            imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png"
+            imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png",
+            isPlaying = true
         )
     }
 }
