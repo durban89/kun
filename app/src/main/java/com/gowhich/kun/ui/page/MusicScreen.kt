@@ -5,9 +5,12 @@ import android.content.ContentResolver
 import android.net.Uri
 import android.util.Log
 import androidx.annotation.OptIn
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -76,6 +79,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -93,6 +97,7 @@ import com.gowhich.kun.R
 import com.gowhich.kun.ui.theme.DarkColorScheme
 import com.gowhich.kun.ui.theme.LightColorScheme
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private const val TAG: String = "MusicScreen"
 
@@ -510,8 +515,42 @@ fun MusicBackground(
     val shape = CircleShape
 
     val rotation = remember { Animatable(0f) }
-    // 3. 监听开关状态
+
+    val animatedWidth = remember { Animatable(2.dp, Dp.VectorConverter) }
+    val animatedColor = remember { Animatable(colorScheme.primary) }
+
+//    val borderColor = remember(colorScheme.primary) { // 依赖主题色，主题变化时重新初始化
+//        Animatable(colorScheme.primary)
+//    }
+//
+//    val borderWidth = remember (2.0f) {
+//        Animatable(2.0f)
+//    }
+
+    // 监听开关状态
     LaunchedEffect(isPlaying) {
+        launch {
+            animatedColor.animateTo(
+                targetValue = colorScheme.secondaryContainer,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(1000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse // 往复循环：蓝 -> 红 -> 蓝
+                )
+            )
+        }
+
+        // 执行宽度平滑动画（500ms过渡）
+        launch {
+            animatedWidth.animateTo(
+                targetValue = 10.dp,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(1000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse // 往复循环：2dp -> 10dp -> 2dp
+                )
+            )
+        }
+
+
         if (isPlaying) {
             // 无限循环旋转
             rotation.animateTo(
@@ -544,6 +583,11 @@ fun MusicBackground(
                     .size(327.dp) // 和图片同尺寸
                     .clip(shape) // 背景色也裁剪为对应圆角/圆形
                     .background(colorScheme.surfaceVariant) // 默认背景色（加载中/失败显示）
+                    .border(
+                        width = animatedWidth.value,
+                        color = animatedColor.value,
+                        shape = shape
+                    )
             ) {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
@@ -554,11 +598,11 @@ fun MusicBackground(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
-                        .border(
-                            width = 2.dp,
-                            color = colorScheme.primary,
-                            shape = shape
-                        )
+//                        .border(
+//                            width = 2.dp, //borderWidth.value.dp,
+//                            color = colorScheme.primary, // borderColor.value,
+//                            shape = shape
+//                        )
                         .rotate(rotation.value), // 应用旋转,
                     onLoading = {
                         Log.d(TAG, "图片加载中：$imageUrl")
