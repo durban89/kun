@@ -46,6 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavController
 import com.gowhich.kun.ui.page.components.HomeScreen.DiscoverContentList
+import com.gowhich.kun.ui.page.components.HomeScreen.LibraryScreen
+import com.gowhich.kun.ui.page.components.HomeScreen.SearchContentGrid
 import com.gowhich.kun.ui.theme.CyberDarkColorScheme
 import com.gowhich.kun.ui.theme.CyberLightColorScheme
 import com.gowhich.kun.ui.theme.DarkColorScheme
@@ -152,29 +154,6 @@ fun HomeScreen(navController: NavController) {
                             indicatorColor = Color.Transparent // 去掉 M3 默认的椭圆背景，保持极简
                         ),
                     )
-
-                    NavigationBarItem(
-                        selected = selectedTab == 3,
-                        onClick = {
-                            selectedTab = 3
-                        },
-                        icon = {
-                            Icon(
-                                Icons.Default.AccountBox,
-                                contentDescription = "我的"
-                            )
-                        },
-                        label = {
-                            Text("我的")
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,     // 选中时为霓虹红
-                            selectedTextColor = MaterialTheme.colorScheme.primary,     // 选中时文字为霓虹红
-                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant, // 未选中为雾霾蓝灰
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            indicatorColor = Color.Transparent // 去掉 M3 默认的椭圆背景，保持极简
-                        ),
-                    )
                 }
             }
         ) {paddingValues->
@@ -186,8 +165,8 @@ fun HomeScreen(navController: NavController) {
             ) {
                 when (selectedTab) {
                     0 -> DiscoverContentList()
-                    1 -> {}
-                    2 -> {}
+                    1 -> SearchContentGrid()
+                    2 -> LibraryScreen(navController)
                 }
 
             }
