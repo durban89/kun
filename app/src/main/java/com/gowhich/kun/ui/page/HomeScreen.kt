@@ -1,5 +1,6 @@
 package com.gowhich.kun.ui.page
 
+import android.app.Activity
 import android.graphics.drawable.Icon
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -29,17 +30,24 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.navigation.NavController
 import com.gowhich.kun.ui.page.components.HomeScreen.DiscoverContentList
+import com.gowhich.kun.ui.theme.CyberDarkColorScheme
+import com.gowhich.kun.ui.theme.CyberLightColorScheme
 import com.gowhich.kun.ui.theme.DarkColorScheme
 import com.gowhich.kun.ui.theme.LightColorScheme
 
@@ -47,29 +55,35 @@ import com.gowhich.kun.ui.theme.LightColorScheme
 // 首页
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavController, colorTheme: ColorScheme) {
+fun HomeScreen(navController: NavController) {
     var selectedTab by remember { mutableIntStateOf(0) }
 
-
-    MaterialTheme (
-        colorScheme = colorTheme
-    ){
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
         Scaffold(
-            containerColor = colorTheme.background,
+            containerColor = MaterialTheme.colorScheme.background,
 
             topBar = {
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
                             text = "音乐",
-                            color = colorTheme.onBackground
                         )
-                    }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background,
+                        titleContentColor = MaterialTheme.colorScheme.onBackground
+                    )
                 )
             },
 
             bottomBar = {
-                NavigationBar() {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 0.dp
+                ) {
                     NavigationBarItem(
                         selected = selectedTab == 0,
                         onClick = {
@@ -85,10 +99,10 @@ fun HomeScreen(navController: NavController, colorTheme: ColorScheme) {
                             Text("发现")
                         },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = colorTheme.primary,     // 选中时为霓虹红
-                            selectedTextColor = colorTheme.primary,     // 选中时文字为霓虹红
-                            unselectedIconColor = colorTheme.onSurfaceVariant, // 未选中为雾霾蓝灰
-                            unselectedTextColor = colorTheme.onSurfaceVariant,
+                            selectedIconColor = MaterialTheme.colorScheme.primary,     // 选中时为霓虹红
+                            selectedTextColor = MaterialTheme.colorScheme.primary,     // 选中时文字为霓虹红
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant, // 未选中为雾霾蓝灰
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             indicatorColor = Color.Transparent // 去掉 M3 默认的椭圆背景，保持极简
                         ),
                     )
@@ -168,10 +182,10 @@ fun HomeScreen(navController: NavController, colorTheme: ColorScheme) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .background(colorTheme.background)
+                    .background(MaterialTheme.colorScheme.background)
             ) {
                 when (selectedTab) {
-                    0 -> DiscoverContentList(colorTheme)
+                    0 -> DiscoverContentList()
                     1 -> {}
                     2 -> {}
                 }
@@ -179,9 +193,9 @@ fun HomeScreen(navController: NavController, colorTheme: ColorScheme) {
             }
         }
     }
+
+
 }
-
-
 
 @Composable
 private fun MessageList() {

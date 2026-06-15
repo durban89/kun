@@ -5,12 +5,15 @@ import androidx.compose.ui.graphics.Color
 // =====================================================================
 // 1. 基础调色盘 (核心颜色提取)
 // =====================================================================
-val CyberBg = Color(0xFF0D0E15)          // 主背景：深邃蓝黑
-val CyberSurface = Color(0xFF1A1C29)     // 卡片/表面：稍浅暗蓝
+val CyberBg = Color(0xFF0D0E15)          // 极致暗蓝黑大背景
+val CyberSurface = Color(0xFF1A1C29)     // 二级卡片暗蓝
 val CyberPrimary = Color(0xFFFF2A54)     // 品牌主色：电音霓虹红
 val CyberSecondary = Color(0xFF00F5D4)   // 品牌辅助：极光薄荷绿
 val CyberTextPrimary = Color(0xFFFFFFFF) // 主文字：纯白
 val CyberTextSecondary = Color(0xFF8E9AA7) // 次文字：雾霾蓝灰
+val CyberTextWhite = Color(0xFFFFFFFF)   // 核心文字：纯白
+val CyberTextGreyBlue = Color(0xFF8E9AA7)// 次要文字：雾霾蓝灰
+val CyberOutline = Color(0xFF26293A)     // 细腻边框线
 
 // 传统 M3 默认保留色（可根据需要微调，此处已根据主色调进行关联适配）
 val Purple80 = Color(0xFFD0BCFF)

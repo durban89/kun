@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -46,14 +47,7 @@ data class TrackData(val id: Int, val title: String, val artist: String, val tag
  *
  */
 @Composable
-fun DiscoverContentList(
-    colorTheme: ColorScheme,
-//    bannerList: List<BannerData>,
-//    recommendTracks: List<TrackData>,
-//    onBannerClick: (BannerData) -> Unit,
-//    onTrackClick: (TrackData) -> Unit,
-//    modifier: Modifier = Modifier
-) {
+fun DiscoverContentList() {
 
     // 2. 严格遵循“赛博迷幻”调色盘的数据配置
     val bannerList = remember {
@@ -73,14 +67,8 @@ fun DiscoverContentList(
         )
     }
 
-    val cardBgColor = Color(0xFF1A1C29)       // 二级卡片背景（深暗蓝）
-    val textPrimaryColor = Color(0xFFFFFFFF)  // 核心文本颜色（纯白）
-    val textSecondaryColor = Color(0xFF8E9AA7)// 次要文本颜色（雾霾蓝灰）
-    val neonMintColor = Color(0xFF00F5D4)     // 薄荷绿标签颜色
-
-
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
 
@@ -101,7 +89,10 @@ fun DiscoverContentList(
                             .clip(RoundedCornerShape(16.dp))
                             .background(
                                 Brush.linearGradient(
-                                    colors = listOf(banner.startColor, banner.endColor)
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.primary,
+                                        MaterialTheme.colorScheme.secondary
+                                    )
                                 )
                             )
                             .clickable {
@@ -134,7 +125,7 @@ fun DiscoverContentList(
                 text = "今日专属推荐",
                 fontSize = 19.sp,
                 fontWeight = FontWeight.Bold,
-                color = textPrimaryColor,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp)
             )
         }
@@ -146,7 +137,7 @@ fun DiscoverContentList(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 6.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(cardBgColor) // 继承自全局设置的 #1A1C29
+                    .background(MaterialTheme.colorScheme.surface) // 继承自全局设置的 #1A1C29
                     .clickable {
 //                        onTrackClick(track)
                     }
@@ -158,7 +149,10 @@ fun DiscoverContentList(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(track.coverBg)
+                        .background(
+                            if (track.id % 2 == 0) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.secondary
+                        )
                 )
 
                 Spacer(modifier = Modifier.width(16.dp))
@@ -171,7 +165,7 @@ fun DiscoverContentList(
                     ) {
                         Text(
                             text = track.title,
-                            color = textPrimaryColor,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 15.sp,
                             maxLines = 1,
@@ -184,12 +178,12 @@ fun DiscoverContentList(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(4.dp))
-                                .background(neonMintColor.copy(alpha = 0.15f))
+                                .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f))
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
                             Text(
                                 text = track.tag,
-                                color = neonMintColor,
+                                color = MaterialTheme.colorScheme.secondary,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -198,7 +192,7 @@ fun DiscoverContentList(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = track.artist,
-                        color = textSecondaryColor, // 对应 #8E9AA7
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, // 对应 #8E9AA7
                         fontSize = 12.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -213,7 +207,7 @@ fun DiscoverContentList(
                     Icon(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = "更多",
-                        tint = textSecondaryColor
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
