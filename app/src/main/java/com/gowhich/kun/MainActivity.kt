@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.*
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -30,6 +31,8 @@ import androidx.navigation.compose.rememberNavController
 import com.gowhich.kun.ui.page.DetailScreen
 import com.gowhich.kun.ui.page.HomeScreen
 import com.gowhich.kun.ui.page.MusicScreen
+import com.gowhich.kun.ui.theme.DarkColorScheme
+import com.gowhich.kun.ui.theme.LightColorScheme
 import kotlinx.serialization.Serializable
 
 //import com.gowhich.kun.ui.theme.KunTheme
@@ -48,15 +51,20 @@ class MainActivity: ComponentActivity() {
         }
 
         setContent {
-            MaterialTheme {
-                MainContainer()
+            val dark = isSystemInDarkTheme()
+            val colorTheme = if (dark) DarkColorScheme else LightColorScheme
+
+            MaterialTheme(
+                colorScheme = colorTheme
+            ) {
+                MainContainer(colorTheme)
             }
 
         }
 
         // 延迟设置全屏，确保视图已初始化
         window.decorView.post {
-            setFullscreen()
+//            setFullscreen()
         }
     }
 
@@ -64,7 +72,7 @@ class MainActivity: ComponentActivity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {
-            setFullscreen()
+//            setFullscreen()
         }
     }
 
@@ -93,13 +101,13 @@ class MainActivity: ComponentActivity() {
 
 @Preview
 @Composable
-fun MainContainer() {
+fun MainContainer(colorTheme: ColorScheme) {
 
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "home") {
         composable("home") {
-            HomeScreen(navController)
+            HomeScreen(navController, colorTheme)
         }
 
         composable("detail") {
