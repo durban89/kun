@@ -34,8 +34,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.gowhich.kun.data.MusicRepository
 import com.gowhich.kun.ui.page.DetailScreen
 import com.gowhich.kun.ui.page.HomeScreen
+import com.gowhich.kun.ui.page.LoginScreen
 import com.gowhich.kun.ui.page.MusicScreen
 import com.gowhich.kun.ui.theme.CyberDarkColorScheme
 import com.gowhich.kun.ui.theme.CyberLightColorScheme
@@ -50,6 +52,8 @@ import kotlinx.serialization.Serializable
 class MainActivity: ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        MusicRepository.init(this)
 
         enableEdgeToEdge()
 
@@ -80,7 +84,11 @@ fun MainContainer() {
 
     val navController = rememberNavController()
 
-    NavHost(navController = navController, startDestination = "home") {
+    NavHost(navController = navController, startDestination = "login") {
+        composable("login") {
+            LoginScreen(navController)
+        }
+
         composable("home") {
             HomeScreen(navController)
         }

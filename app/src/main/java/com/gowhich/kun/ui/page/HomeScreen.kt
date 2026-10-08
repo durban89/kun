@@ -71,7 +71,7 @@ fun HomeScreen(navController: NavController) {
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
-                            text = "音乐",
+                            text = "Kun Music",
                         )
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -94,11 +94,11 @@ fun HomeScreen(navController: NavController) {
                         icon = {
                             Icon(
                                 Icons.Default.CompassCalibration,
-                                contentDescription = "发现"
+                                contentDescription = "Discover"
                             )
                         },
                         label = {
-                            Text("发现")
+                            Text("Discover")
                         },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,     // 选中时为霓虹红
@@ -117,11 +117,11 @@ fun HomeScreen(navController: NavController) {
                         icon = {
                             Icon(
                                 Icons.Default.Search,
-                                contentDescription = "搜索"
+                                contentDescription = "Search"
                             )
                         },
                         label = {
-                            Text("搜索")
+                            Text("Search")
                         },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,     // 选中时为霓虹红
@@ -140,11 +140,11 @@ fun HomeScreen(navController: NavController) {
                         icon = {
                             Icon(
                                 Icons.Default.LibraryMusic,
-                                contentDescription = "音乐库"
+                                contentDescription = "Library"
                             )
                         },
                         label = {
-                            Text("音乐库")
+                            Text("Library")
                         },
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = MaterialTheme.colorScheme.primary,     // 选中时为霓虹红
@@ -164,8 +164,8 @@ fun HomeScreen(navController: NavController) {
                     .background(MaterialTheme.colorScheme.background)
             ) {
                 when (selectedTab) {
-                    0 -> DiscoverContentList()
-                    1 -> SearchContentGrid()
+                    0 -> DiscoverContentList(navController)
+                    1 -> SearchContentGrid(navController)
                     2 -> LibraryScreen(navController)
                 }
 

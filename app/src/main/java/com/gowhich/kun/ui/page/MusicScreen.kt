@@ -94,6 +94,7 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.gowhich.kun.R
+import com.gowhich.kun.player.PlayerController
 import com.gowhich.kun.ui.theme.DarkColorScheme
 import com.gowhich.kun.ui.theme.LightColorScheme
 import kotlinx.coroutines.delay
@@ -113,74 +114,21 @@ fun formatTime(millis: Long): String {
 @OptIn(UnstableApi::class)
 @Composable
 fun MusicScreen(navController: NavController) {
-    val mediaUrl = "https://storage.googleapis.com/exoplayer-test-media-0/play.mp3"
     val context = LocalContext.current
 
-//    val rawUri = RawResourceDataSource.buildRawResourceUri(R.raw.test2)
+    val currentSong = PlayerController.currentSong
 
-    val rawUri = Uri.Builder()
-        .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE) // 指定安卓资源scheme
-        .path(R.raw.test2.toString()) // 资源ID转为字符串作为path
-        .build()
-
-    // 创建并缓存ExoPlayer实例（remember避免重组重建）
-    val exoPlayer = remember(context) {
-        ExoPlayer.Builder(context)
-            .build().apply {
-                // 设置播放源
-                val mediaItem = MediaItem.fromUri(mediaUrl)
-                setMediaItem(mediaItem)
-
-                // 准备播放器（预加载）
-                prepare()
-
-                // 是否静音 0-1
-                volume = 1f
-
-                // 是否循环播放
-                repeatMode = Player.REPEAT_MODE_ALL
-            }
+    // 确保播放器已初始化
+    LaunchedEffect(Unit) {
+        PlayerController.ensurePlayer(context)
     }
 
-    // 管理播放器生命周期（页面销毁时释放资源）
-    DisposableEffect(Unit) {
-        onDispose {
-            exoPlayer.release()
-        }
-    }
-
-    // 监听播放状态
-    val isPlaying = remember { mutableStateOf(false) }
-    exoPlayer.addListener(object : Player.Listener {
-        override fun onPlaybackStateChanged(playbackState: Int) {
-            super.onPlaybackStateChanged(playbackState)
-
-            isPlaying.value = playbackState == Player.STATE_READY && exoPlayer.isPlaying
-
-            Log.d(TAG, "onPlaybackStateChanged: ${playbackState} ${exoPlayer.isPlaying}")
-        }
-
-        override fun onIsPlayingChanged(newIsPlaying: Boolean) {
-            super.onIsPlayingChanged(newIsPlaying)
-            Log.d(TAG, "onIsPlayingChanged: $isPlaying")
-            isPlaying.value = newIsPlaying
-        }
-    })
-
-    // 监听播放进度(每秒更新一次)
-    val currentPosition = remember { mutableStateOf(0L) }
-    val totalPosition = remember { mutableStateOf(0L) }
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(exoPlayer) {
-        totalPosition.value = exoPlayer.duration
-
-        // 循环更新进度
+    // 每秒更新一次进度
+    LaunchedEffect(Unit) {
         while (true) {
-            delay(1000) // 延迟1秒更新
-            if (exoPlayer.isPlaying) {
-                totalPosition.value = exoPlayer.duration
-                currentPosition.value = exoPlayer.currentPosition
+            delay(1000)
+            PlayerController.exoPlayer?.let { player ->
+                PlayerController.updateProgress(player.currentPosition, player.duration)
             }
         }
     }
@@ -195,8 +143,8 @@ fun MusicScreen(navController: NavController) {
         Box() {
             // 背景图
             MusicBackground(
-                imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png",
-                isPlaying = isPlaying.value
+                imageUrl = currentSong?.coverUrl ?: "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png",
+                isPlaying = PlayerController.isPlaying
             )
 
             Column(
@@ -204,43 +152,58 @@ fun MusicScreen(navController: NavController) {
                 verticalArrangement = Arrangement.SpaceBetween,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column {  }
+                Column {
+                    if (currentSong != null) {
+                        Text(
+                            text = currentSong!!.title,
+                            color = colorScheme.onBackground,
+                            fontSize = 22.sp,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 120.dp)
+                        )
+                        Text(
+                            text = currentSong!!.artist.ifBlank { "Unknown Artist" },
+                            color = colorScheme.onSurfaceVariant,
+                            fontSize = 14.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
 
                 Column {
                     // 进度条slider
                     MusicSlider(
-                        currentPosition = currentPosition.value,
-                        totalDuration = totalPosition.value,
+                        currentPosition = PlayerController.currentPosition,
+                        totalDuration = PlayerController.duration,
                         onPositionChange = {
-                            exoPlayer.seekTo(it)
+                            PlayerController.seekTo(it)
                         },
-                        enabled = exoPlayer.playbackState == Player.STATE_READY
+                        enabled = PlayerController.exoPlayer?.playbackState == Player.STATE_READY
                     )
 
                     // 操作按钮
-                    // 上一曲 播放/暂停 下一曲
                     MusicPlayAction(
-                        isPlaying = isPlaying.value,
+                        isPlaying = PlayerController.isPlaying,
                         onPlayOrPauseClick = {
-                            if (isPlaying.value) exoPlayer.pause() else exoPlayer.play()
+                            PlayerController.togglePlayPause()
                         },
                         onPreviewClick = {
-
+                            PlayerController.playPrevious()
                         },
                         onNextClick = {
-
+                            PlayerController.playNext()
                         }
                     )
                 }
-
             }
 
             MusicNavigator(navController)
-
         }
     }
-
-
 }
 
 
@@ -285,7 +248,7 @@ fun MusicNavigator(
             ) {
                 Image(
                     painter = rememberVectorPainter(Icons.Default.ArrowBackIosNew),
-                    contentDescription = "返回",
+                    contentDescription = "Back",
                     contentScale = ContentScale.Fit,
                     colorFilter = ColorFilter.tint(colorScheme.primary),
                     modifier = Modifier
@@ -303,7 +266,7 @@ fun MusicNavigator(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "详情",
+                text = "Now Playing",
                 color = colorScheme.onSurface, // 文字色适配背景（浅/深色自动切换）
                 style = MaterialTheme.typography.titleMedium, // 用主题字体样式，提升视觉层级
             )
@@ -326,7 +289,7 @@ fun MusicNavigator(
             ) {
                 Image(
                     painter = rememberVectorPainter(Icons.Default.MoreHoriz),
-                    contentDescription = "更多",
+                    contentDescription = "More",
                     contentScale = ContentScale.Fit,
                     colorFilter = ColorFilter.tint(colorScheme.primary),
                     modifier = Modifier
@@ -378,7 +341,7 @@ fun MusicPlayAction(
         ) {
             Image(
                 rememberVectorPainter(Icons.Default.KeyboardDoubleArrowLeft),
-                contentDescription = "上一曲",
+                contentDescription = "Previous",
                 modifier = Modifier
                     .width(48.dp)
                     .height(48.dp),
@@ -398,7 +361,7 @@ fun MusicPlayAction(
         ) {
             Image(
                 rememberVectorPainter(if (isPlaying) Icons.Default.PauseCircle else Icons.Default.PlayCircle),
-                contentDescription = "播放或暂停",
+                contentDescription = "Play or Pause",
                 modifier = Modifier
                     .width(83.dp)
                     .height(83.dp),
@@ -417,7 +380,7 @@ fun MusicPlayAction(
         ) {
             Image(
                 rememberVectorPainter(Icons.Default.KeyboardDoubleArrowRight),
-                contentDescription = "下一曲",
+                contentDescription = "Next",
                 modifier = Modifier
                     .width(48.dp)
                     .height(48.dp),
@@ -594,7 +557,7 @@ fun MusicBackground(
                         .data(imageUrl)
                         .crossfade(true)
                         .build(),
-                    contentDescription = "专辑图片",
+                    contentDescription = "Album Artwork",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()

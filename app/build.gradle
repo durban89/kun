@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.0'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -80,6 +82,18 @@ dependencies {
     implementation "androidx.navigation:navigation-compose:2.7.7"
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1"
 
+    // DataStore Preferences (本地数据持久化)
+    implementation "androidx.datastore:datastore-preferences:1.1.1"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0"
+
+    // 强制 kotlinx-serialization 使用与 Kotlin 1.9 兼容的版本
+    implementation('org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1') {
+        version { strictly '1.5.1' }
+    }
+    implementation('org.jetbrains.kotlinx:kotlinx-serialization-core:1.5.1') {
+        version { strictly '1.5.1' }
+    }
+
     // Coil Compose 核心库（支持网络、本地图片加载）
     implementation "io.coil-kt:coil-compose:2.5.0"
     // 可选：支持 GIF/WEBP 动图（如需加载动图添加）
@@ -91,6 +105,13 @@ dependencies {
     implementation("androidx.media3:media3-ui:1.9.0") // UI组件（StyledPlayerView）
     implementation("androidx.media3:media3-ui-compose:1.9.0") // Compose适配
     implementation("androidx.media3:media3-common:1.9.0") // 核心基础类
+
+    // Firebase
+    implementation platform('com.google.firebase:firebase-bom:33.1.2')
+    implementation 'com.google.firebase:firebase-auth-ktx'
+
+    // Google Sign-In
+    implementation 'com.google.android.gms:play-services-auth:21.2.0'
 
     // 调试工具
     debugImplementation 'androidx.compose.ui:ui-tooling'

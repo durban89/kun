@@ -1,0 +1,23 @@
+{
+  "banners": [
+    { "id": 1, "title": "Electric Rave Live", "subtitle": "120 BPM foot-tapping feast", "startColor": "FF2A54", "endColor": "930026" },
+    { "id": 2, "title": "Aurora Chill", "subtitle": "Immersive electronic ambient", "startColor": "00F5D4", "endColor": "005144" },
+    { "id": 3, "title": "Midnight Jazz", "subtitle": "Saxophone for the night", "startColor": "8E9AA7", "endColor": "1A1C29" }
+  ],
+  "tracks": [
+    { "id": 1, "title": "Cyber Resonance 2026", "artist": "Future Sound Studio", "genre": "Electronic", "coverColor": "FF2A54", "uri": "https://storage.googleapis.com/exoplayer-test-media-0/play.mp3" },
+    { "id": 2, "title": "Neon Rain Drops", "artist": "Tokyo Lo-Fi DJ", "genre": "Lo-Fi", "coverColor": "00F5D4", "uri": "https://storage.googleapis.com/exoplayer-test-media-1/counting-squares.mp3" },
+    { "id": 3, "title": "Midnight City Walk Blue", "artist": "Synth Pop Player", "genre": "Pop", "coverColor": "8E9AA7", "uri": "https://storage.googleapis.com/exoplayer-test-media-0/play.mp3" },
+    { "id": 4, "title": "Lost in Bass Drop", "artist": "Bass Booster Project", "genre": "Bass", "coverColor": "26293A", "uri": "https://storage.googleapis.com/exoplayer-test-media-1/counting-squares.mp3" }
+  ],
+  "genres": [
+    { "id": 1, "name": "Electronic", "startColor": "FF2A54", "endColor": "930026" },
+    { "id": 2, "name": "Cyber Bass", "startColor": "00F5D4", "endColor": "005144" },
+    { "id": 3, "name": "Lo-Fi / Chill", "startColor": "8E9AA7", "endColor": "26293A" },
+    { "id": 4, "name": "Indie Rock", "startColor": "6CDBAC", "endColor": "1F352A" },
+    { "id": 5, "name": "Hip-Hop / Rap", "startColor": "FF5252", "endColor": "7D0000" },
+    { "id": 6, "name": "Ambient", "startColor": "3D6373", "endColor": "162A32" },
+    { "id": 7, "name": "Classic", "startColor": "4F5366", "endColor": "1A1C29" },
+    { "id": 8, "name": "White Noise", "startColor": "A0F5E4", "endColor": "0D0E15" }
+  ]
+}
