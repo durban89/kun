@@ -1,7 +1,7 @@
 package com.gowhich.kun.ui.page.components.HomeScreen
 
-import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -65,6 +65,13 @@ fun LibraryScreen(navController: NavController) {
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
         if (uri != null) {
+            // 持久化读取权限，应用重启后仍可访问该 content:// 文件
+            runCatching {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            }
             val name = queryDisplayName(context, uri)
             scope.launch {
                 MusicRepository.addSong(
@@ -216,6 +223,7 @@ fun LibraryScreen(navController: NavController) {
             LibrarySongRow(
                 song = song,
                 onClick = {
+                    PlayerController.ensurePlayer(context)
                     PlayerController.play(songs, songs.indexOfFirst { it.id == song.id })
                     navController.navigate("music")
                 },

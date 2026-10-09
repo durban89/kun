@@ -37,7 +37,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,7 +56,6 @@ import com.gowhich.kun.data.mock.parseHexColor
 import com.gowhich.kun.data.model.Song
 import com.gowhich.kun.data.model.SongSource
 import com.gowhich.kun.player.PlayerController
-import kotlinx.coroutines.launch
 
 /**
  * 搜索页：可搜索内置推荐与本地歌曲，点击流派快速筛选，点击单曲播放。
@@ -66,7 +64,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun SearchContentGrid(navController: NavController) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
 
     val bundle = remember(context) { BundledContentLoader.load(context) }
     val userSongs by MusicRepository.songs.collectAsState(initial = emptyList())
@@ -74,9 +71,11 @@ fun SearchContentGrid(navController: NavController) {
     var query by remember { mutableStateOf("") }
 
     val allSongs = remember(bundle, userSongs) {
+        val repoById = userSongs.associateBy { it.id }
         val bundled = bundle.tracks.map { t ->
-            Song(
-                id = "bundled_${t.id}",
+            val id = "bundled_${t.id}"
+            repoById[id] ?: Song(
+                id = id,
                 title = t.title,
                 artist = t.artist,
                 genre = t.genre,
@@ -85,7 +84,8 @@ fun SearchContentGrid(navController: NavController) {
                 coverUrl = t.coverUrl
             )
         }
-        bundled + userSongs
+        val bundledIds = bundled.map { it.id }.toSet()
+        bundled + userSongs.filterNot { it.id in bundledIds }
     }
 
     // 是否处于筛选结果视图
@@ -168,6 +168,7 @@ fun SearchContentGrid(navController: NavController) {
                 SearchResultRow(
                     song = song,
                     onClick = {
+                        PlayerController.ensurePlayer(context)
                         PlayerController.playSingle(song)
                         navController.navigate("music")
                     }

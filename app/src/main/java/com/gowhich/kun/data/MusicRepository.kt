@@ -80,6 +80,23 @@ object MusicRepository {
         }
     }
 
+    /**
+     * 切换收藏（适用于内置曲目等尚未持久化的歌曲）。
+     * 若歌曲不在库中则先写入并标记为喜欢，否则对其收藏状态取反。
+     */
+    suspend fun toggleFavorite(song: Song) {
+        dataStore().edit { prefs ->
+            val current = readSongs(prefs[KEY_SONGS])
+            val existing = current.any { it.id == song.id }
+            val updated = if (existing) {
+                current.map { if (it.id == song.id) it.copy(isFavorite = !it.isFavorite) else it }
+            } else {
+                current + song.copy(isFavorite = true)
+            }
+            prefs[KEY_SONGS] = json.encodeToString(songListSerializer, updated)
+        }
+    }
+
     private fun readSongs(raw: String?): List<Song> {
         if (raw == null) return emptyList()
         return runCatching { json.decodeFromString(songListSerializer, raw) }.getOrDefault(emptyList())

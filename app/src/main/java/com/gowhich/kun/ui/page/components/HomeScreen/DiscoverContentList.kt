@@ -65,11 +65,13 @@ fun DiscoverContentList(navController: NavController) {
     // 关注喜欢状态变化，用于刷新红心
     val songs by MusicRepository.songs.collectAsState(initial = emptyList())
 
-    // 播放列表：由内置推荐 + 用户本地歌曲构成
+    // 播放列表：由内置推荐 + 用户本地歌曲构成（同 id 以仓库数据为准，携带收藏状态）
     val playableSongs = remember(bundle, songs) {
+        val repoById = songs.associateBy { it.id }
         val bundled = bundle.tracks.map { t ->
-            Song(
-                id = "bundled_${t.id}",
+            val id = "bundled_${t.id}"
+            repoById[id] ?: Song(
+                id = id,
                 title = t.title,
                 artist = t.artist,
                 genre = t.genre,
@@ -78,7 +80,8 @@ fun DiscoverContentList(navController: NavController) {
                 coverUrl = t.coverUrl
             )
         }
-        (bundled + songs)
+        val bundledIds = bundled.map { it.id }.toSet()
+        bundled + songs.filterNot { it.id in bundledIds }
     }
 
     LazyColumn(
@@ -105,9 +108,10 @@ fun DiscoverContentList(navController: NavController) {
                 song = song,
                 isFavorite = song.isFavorite,
                 onFavoriteToggle = {
-                    scope.launch { MusicRepository.toggleFavorite(song.id) }
+                    scope.launch { MusicRepository.toggleFavorite(song) }
                 },
                 onClick = {
+                    PlayerController.ensurePlayer(context)
                     PlayerController.playSingle(song)
                     navController.navigate("music")
                 }

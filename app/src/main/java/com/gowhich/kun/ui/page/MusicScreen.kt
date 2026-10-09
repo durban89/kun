@@ -1,26 +1,19 @@
 package com.gowhich.kun.ui.page
 
 import android.annotation.SuppressLint
-import android.content.ContentResolver
-import android.net.Uri
 import android.util.Log
 import androidx.annotation.OptIn
-import androidx.compose.animation.Animatable
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector4D
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.TwoWayConverter
 import androidx.compose.animation.core.VectorConverter
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,58 +35,35 @@ import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayCircle
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import androidx.media3.common.util.Size
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.RawResourceDataSource
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.gowhich.kun.R
 import com.gowhich.kun.player.PlayerController
 import com.gowhich.kun.ui.theme.DarkColorScheme
 import com.gowhich.kun.ui.theme.LightColorScheme
@@ -101,6 +71,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private const val TAG: String = "MusicScreen"
+
+/** 颜色 Animatable 所需的矢量转换器（部分 Compose 版本未内置 Color 转换器） */
+private val ColorVectorConverter: TwoWayConverter<Color, AnimationVector4D> = TwoWayConverter(
+    convertToVector = { AnimationVector4D(it.red, it.green, it.blue, it.alpha) },
+    convertFromVector = { Color(it.v1, it.v2, it.v3, it.v4) }
+)
 
 // 工具方法：格式化时间
 @SuppressLint("DefaultLocale")
@@ -480,15 +456,7 @@ fun MusicBackground(
     val rotation = remember { Animatable(0f) }
 
     val animatedWidth = remember { Animatable(2.dp, Dp.VectorConverter) }
-    val animatedColor = remember { Animatable(colorScheme.primary) }
-
-//    val borderColor = remember(colorScheme.primary) { // 依赖主题色，主题变化时重新初始化
-//        Animatable(colorScheme.primary)
-//    }
-//
-//    val borderWidth = remember (2.0f) {
-//        Animatable(2.0f)
-//    }
+    val animatedColor = remember { Animatable(colorScheme.primary, ColorVectorConverter) }
 
     // 监听开关状态
     LaunchedEffect(isPlaying) {
@@ -497,7 +465,7 @@ fun MusicBackground(
                 targetValue = colorScheme.secondaryContainer,
                 animationSpec = infiniteRepeatable(
                     animation = tween(1000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse // 往复循环：蓝 -> 红 -> 蓝
+                    repeatMode = RepeatMode.Reverse // 往复循环：红 -> 绿 -> 红
                 )
             )
         }
@@ -512,7 +480,6 @@ fun MusicBackground(
                 )
             )
         }
-
 
         if (isPlaying) {
             // 无限循环旋转
@@ -665,15 +632,6 @@ fun MusicNavigator_Dark_Preview() {
 
     CustomMusicTheme(darkTheme = true) {
         MusicNavigator(navController = navController)
-    }
-}
-
-@Composable
-private fun previewExoPlayer(): ExoPlayer {
-    val context = LocalContext.current
-    return remember {
-        ExoPlayer.Builder(context)
-            .build() // 预览中仅创建实例，不加载音频，不影响预览效果
     }
 }
 
