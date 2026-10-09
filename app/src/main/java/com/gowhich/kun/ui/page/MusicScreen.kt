@@ -1,25 +1,23 @@
 package com.gowhich.kun.ui.page
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.annotation.OptIn
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector4D
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.TwoWayConverter
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,6 +33,8 @@ import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -43,13 +43,20 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -62,21 +69,27 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.gowhich.kun.player.PlayerController
 import com.gowhich.kun.ui.theme.DarkColorScheme
 import com.gowhich.kun.ui.theme.LightColorScheme
+import kotlin.math.abs
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-private const val TAG: String = "MusicScreen"
-
-/** 颜色 Animatable 所需的矢量转换器（部分 Compose 版本未内置 Color 转换器） */
-private val ColorVectorConverter: TwoWayConverter<Color, AnimationVector4D> = TwoWayConverter(
-    convertToVector = { AnimationVector4D(it.red, it.green, it.blue, it.alpha) },
-    convertFromVector = { Color(it.v1, it.v2, it.v3, it.v4) }
+/** 封面暂未提供真实图片：按歌名确定性选一组霓虹渐变色，构建占位封面 */
+private val CoverPalettes = listOf(
+    listOf(Color(0xFFFF2A54), Color(0xFF00F5D4)),
+    listOf(Color(0xFF7C4DFF), Color(0xFF00E5FF)),
+    listOf(Color(0xFFFF6F00), Color(0xFFFF4081)),
+    listOf(Color(0xFF00C853), Color(0xFFFFD740)),
+    listOf(Color(0xFF651FFF), Color(0xFF26C6DA)),
+    listOf(Color(0xFFAB47BC), Color(0xFFFFD54F))
 )
+
+private fun coverColors(seed: String?): List<Color> {
+    val index = abs((seed ?: "kun").hashCode()) % CoverPalettes.size
+    return CoverPalettes[index]
+}
 
 // 工具方法：格式化时间
 @SuppressLint("DefaultLocale")
@@ -117,9 +130,9 @@ fun MusicScreen(navController: NavController) {
         typography = MaterialTheme.typography
     ) {
         Box() {
-            // 背景图
+            // 背景：封面（暂用颜色构建的占位渐变封面）
             MusicBackground(
-                imageUrl = currentSong?.coverUrl ?: "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png",
+                title = currentSong?.title,
                 isPlaying = PlayerController.isPlaying
             )
 
@@ -164,6 +177,8 @@ fun MusicScreen(navController: NavController) {
                     // 操作按钮
                     MusicPlayAction(
                         isPlaying = PlayerController.isPlaying,
+                        repeatMode = PlayerController.repeatMode,
+                        onRepeatClick = { PlayerController.cycleRepeatMode() },
                         onPlayOrPauseClick = {
                             PlayerController.togglePlayPause()
                         },
@@ -280,6 +295,8 @@ fun MusicNavigator(
 @Composable
 fun MusicPlayAction(
     isPlaying: Boolean,
+    repeatMode: Int = Player.REPEAT_MODE_OFF,
+    onRepeatClick: () -> Unit = {},
     onPlayOrPauseClick: () -> Unit = {},
     onPreviewClick: () -> Unit = {},
     onNextClick: () -> Unit = {}
@@ -304,66 +321,118 @@ fun MusicPlayAction(
             .fillMaxWidth()
             .background(color = colorScheme.surfaceVariant)
             .padding(start = 10.dp, end = 10.dp),
-        horizontalArrangement = Arrangement.Center,
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Button(
-            modifier = buttonModifier,
-            contentPadding = PaddingValues(10.dp),
-            colors = buttonColors,
-            onClick = {
-                onPreviewClick()
-            }
+        // 左侧：循环模式切换（关闭 / 列表循环 / 单曲循环）
+        MusicRepeatButton(
+            repeatMode = repeatMode,
+            onToggle = onRepeatClick
+        )
+
+        // 中间：上一首 / 播放暂停 / 下一首
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                rememberVectorPainter(Icons.Default.KeyboardDoubleArrowLeft),
-                contentDescription = "Previous",
-                modifier = Modifier
-                    .width(48.dp)
-                    .height(48.dp),
-                contentScale = ContentScale.Fit,
-                colorFilter = ColorFilter.tint(colorScheme.primary)
-            )
+            Button(
+                modifier = buttonModifier,
+                contentPadding = PaddingValues(10.dp),
+                colors = buttonColors,
+                onClick = {
+                    onPreviewClick()
+                }
+            ) {
+                Image(
+                    rememberVectorPainter(Icons.Default.KeyboardDoubleArrowLeft),
+                    contentDescription = "Previous",
+                    modifier = Modifier
+                        .width(48.dp)
+                        .height(48.dp),
+                    contentScale = ContentScale.Fit,
+                    colorFilter = ColorFilter.tint(colorScheme.primary)
+                )
+            }
+
+            Button(
+                modifier = playButtonModifier,
+                contentPadding = PaddingValues(10.dp),
+                colors = buttonColors,
+                onClick = {
+                    // 暂停 或者 开始
+                    onPlayOrPauseClick()
+                }
+            ) {
+                Image(
+                    rememberVectorPainter(if (isPlaying) Icons.Default.PauseCircle else Icons.Default.PlayCircle),
+                    contentDescription = "Play or Pause",
+                    modifier = Modifier
+                        .width(83.dp)
+                        .height(83.dp),
+                    contentScale = ContentScale.Fit,
+                    colorFilter = ColorFilter.tint(colorScheme.primary)
+                )
+            }
+
+            Button(
+                modifier = buttonModifier,
+                contentPadding = PaddingValues(10.dp),
+                colors = buttonColors,
+                onClick = {
+                    onNextClick()
+                }
+            ) {
+                Image(
+                    rememberVectorPainter(Icons.Default.KeyboardDoubleArrowRight),
+                    contentDescription = "Next",
+                    modifier = Modifier
+                        .width(48.dp)
+                        .height(48.dp),
+                    contentScale = ContentScale.Fit,
+                    colorFilter = ColorFilter.tint(colorScheme.primary)
+                )
+            }
         }
 
-        Button(
-            modifier = playButtonModifier,
-            contentPadding = PaddingValues(10.dp),
-            colors = buttonColors,
-            onClick = {
-                // 暂停 或者 开始
-                onPlayOrPauseClick()
-            }
-        ) {
-            Image(
-                rememberVectorPainter(if (isPlaying) Icons.Default.PauseCircle else Icons.Default.PlayCircle),
-                contentDescription = "Play or Pause",
-                modifier = Modifier
-                    .width(83.dp)
-                    .height(83.dp),
-                contentScale = ContentScale.Fit,
-                colorFilter = ColorFilter.tint(colorScheme.primary)
-            )
-        }
+        // 右侧占位，保持中间按钮组居中
+        Spacer(modifier = Modifier.width(48.dp))
+    }
+}
 
-        Button(
-            modifier = buttonModifier,
-            contentPadding = PaddingValues(10.dp),
-            colors = buttonColors,
-            onClick = {
-                onNextClick()
-            }
-        ) {
-            Image(
-                rememberVectorPainter(Icons.Default.KeyboardDoubleArrowRight),
-                contentDescription = "Next",
-                modifier = Modifier
-                    .width(48.dp)
-                    .height(48.dp),
-                contentScale = ContentScale.Fit,
-                colorFilter = ColorFilter.tint(colorScheme.primary)
-            )
-        }
+/** 循环模式切换按钮：OFF 置灰，列表循环用 Repeat 图标，单曲循环用 RepeatOne 图标 */
+@Composable
+fun MusicRepeatButton(
+    repeatMode: Int,
+    onToggle: () -> Unit
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    val isOne = repeatMode == Player.REPEAT_MODE_ONE
+    val isActive = repeatMode != Player.REPEAT_MODE_OFF
+    val icon = if (isOne) Icons.Filled.RepeatOne else Icons.Filled.Repeat
+    val tint = if (isActive) colorScheme.primary else colorScheme.onSurface.copy(alpha = 0.4f)
+
+    Button(
+        modifier = Modifier.size(48.dp),
+        contentPadding = PaddingValues(10.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            contentColor = tint,
+        ),
+        onClick = onToggle
+    ) {
+        Image(
+            painter = rememberVectorPainter(icon),
+            contentDescription = when {
+                isOne -> "单曲循环"
+                isActive -> "列表循环"
+                else -> "关闭循环"
+            },
+            modifier = Modifier
+                .width(48.dp)
+                .height(48.dp),
+            contentScale = ContentScale.Fit,
+            colorFilter = ColorFilter.tint(tint)
+        )
     }
 }
 
@@ -379,7 +448,36 @@ fun MusicSlider(
     // 计算滑块当前值（转换为Float，适配Slider）
     // 处理总时长为0的情况（避免除以0/滑块范围错误）
     val sliderMaxValue = if (totalDuration <= 0) 1f else totalDuration.toFloat()
-    val sliderPosition = if (totalDuration <= 0) 0f else currentPosition.toFloat()
+
+    // 拖动中的本地状态：拖动时拇指跟前指走，不被每秒刷新一次的进度拉回去；松手后再回源
+    var isDragging by remember { mutableStateOf(false) }
+    // 注意：不能用 remember(currentPosition)，否则每秒刷新会重建该状态导致拖动被打断
+    var dragPosition by remember { mutableStateOf(currentPosition) }
+    // 松手后"待播放器确认"的目标位置：期间保持显示目标，避免先跳回起点再跳到目标
+    var pendingSeek by remember { mutableStateOf<Long?>(null) }
+
+    // 播放器进度追平目标后，结束待确认状态
+    LaunchedEffect(currentPosition, pendingSeek) {
+        val target = pendingSeek
+        if (target != null && kotlin.math.abs(currentPosition - target) < 500L) {
+            pendingSeek = null
+        }
+    }
+    // 兜底：最多保持 1.5s，避免 seek 失败导致拇指一直停在目标位
+    LaunchedEffect(pendingSeek) {
+        if (pendingSeek != null) {
+            delay(1500)
+            if (pendingSeek != null) pendingSeek = null
+        }
+    }
+
+    // 拖动时显示本地值，释放后到播放器追平前显示目标值，之后跟随实时进度
+    val effectivePosition = when {
+        isDragging -> dragPosition
+        pendingSeek != null -> pendingSeek!!
+        else -> currentPosition
+    }
+    val sliderPosition = if (totalDuration <= 0) 0f else effectivePosition.toFloat()
 
     val colorScheme = MaterialTheme.colorScheme
 
@@ -407,7 +505,16 @@ fun MusicSlider(
         Slider(
             value = sliderPosition,
             onValueChange = { newPosition ->
-                onPositionChange(newPosition.toLong())
+                // 拖动中只更新本地拇指位置，不实时 seek（避免频繁 seekTo 卡顿掉帧）
+                isDragging = true
+                dragPosition = newPosition.toLong()
+            },
+            onValueChangeFinished = {
+                // 松手：标记待确认目标并一次性 seek；播放器进度追平后回源（避免先回起点再跳目标）
+                val target = dragPosition
+                pendingSeek = target
+                isDragging = false
+                onPositionChange(target)
             },
             valueRange = 0f..sliderMaxValue,
             enabled = enabled,
@@ -424,7 +531,7 @@ fun MusicSlider(
         ) {
             Text(
                 modifier = Modifier.width(50.dp),
-                text = formatTime(currentPosition),
+                text = formatTime(effectivePosition),
                 color = colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 fontSize = 12.sp
@@ -444,7 +551,7 @@ fun MusicSlider(
 
 @Composable
 fun MusicBackground(
-    imageUrl: String?,
+    title: String?,
     isPlaying: Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -455,30 +562,16 @@ fun MusicBackground(
 
     val rotation = remember { Animatable(0f) }
 
-    val animatedWidth = remember { Animatable(2.dp, Dp.VectorConverter) }
-    val animatedColor = remember { Animatable(colorScheme.primary, ColorVectorConverter) }
+    val animatedWidth = remember { Animatable(0.dp, Dp.VectorConverter) }
 
     // 监听开关状态
     LaunchedEffect(isPlaying) {
+        // 边框宽度：从无到有、再从有到无的显式双向循环（0dp -> 22dp -> 0dp）
         launch {
-            animatedColor.animateTo(
-                targetValue = colorScheme.secondaryContainer,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(1000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse // 往复循环：红 -> 绿 -> 红
-                )
-            )
-        }
-
-        // 执行宽度平滑动画（500ms过渡）
-        launch {
-            animatedWidth.animateTo(
-                targetValue = 10.dp,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(1000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse // 往复循环：2dp -> 10dp -> 2dp
-                )
-            )
+            while (true) {
+                animatedWidth.animateTo(22.dp, tween(2000, easing = FastOutSlowInEasing))
+                animatedWidth.animateTo(0.dp, tween(2000, easing = FastOutSlowInEasing))
+            }
         }
 
         if (isPlaying) {
@@ -503,46 +596,48 @@ fun MusicBackground(
             contentAlignment = Alignment.TopCenter, // 子组件（图片）左右居中、垂直偏上
     ) {
         Column (
-            modifier = Modifier.fillMaxWidth().height(493.dp),
+            // 高度需 ≥ 封面 top padding + 边长，否则固定高度会把圆压扁成椭圆
+            modifier = Modifier.fillMaxWidth().height(560.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            val gradientColors = remember(title) { coverColors(title) }
+
             Box(
                 modifier = modifier
-                    .padding(top = 166.dp)
-                    .size(327.dp) // 和图片同尺寸
+                    .padding(top = 200.dp) // 与上方文字留更大间隔
+                    .size(327.dp) // 颜色封面与旧图片同尺寸
                     .clip(shape) // 背景色也裁剪为对应圆角/圆形
-                    .background(colorScheme.surfaceVariant) // 默认背景色（加载中/失败显示）
-                    .border(
-                        width = animatedWidth.value,
-                        color = animatedColor.value,
-                        shape = shape
-                    )
+                    .background(colorScheme.surfaceVariant) // 默认底色
+                    .drawWithContent {
+                        // 先画内容（渐变封面），再叠加渐变描边环（随转动扫色）
+                        drawContent()
+                        val strokeWidth = animatedWidth.value.toPx()
+                        if (strokeWidth > 0f) {
+                            rotate(degrees = rotation.value, pivot = center) {
+                                drawCircle(
+                                    brush = Brush.sweepGradient(
+                                        listOf(
+                                            colorScheme.primary,
+                                            colorScheme.tertiary,
+                                            colorScheme.secondaryContainer,
+                                            colorScheme.primary
+                                        )
+                                    ),
+                                    radius = size.minDimension / 2f - strokeWidth / 2f,
+                                    center = center,
+                                    style = Stroke(width = strokeWidth)
+                                )
+                            }
+                        }
+                    }
             ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(imageUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = "Album Artwork",
-                    contentScale = ContentScale.Crop,
+                // 占位封面：按歌名选定的渐变，随播放旋转（同旧图片的旋转动画）
+                Box(
                     modifier = Modifier
                         .fillMaxSize()
-//                        .border(
-//                            width = 2.dp, //borderWidth.value.dp,
-//                            color = colorScheme.primary, // borderColor.value,
-//                            shape = shape
-//                        )
-                        .rotate(rotation.value), // 应用旋转,
-                    onLoading = {
-                        Log.d(TAG, "图片加载中：$imageUrl")
-                    },
-                    onError = { error ->
-                        Log.e(TAG, "图片加载失败：$imageUrl，错误信息：${error.result.throwable.message}")
-                    },
-                    onSuccess = { state ->
-                        Log.d(TAG, "图片加载成功：$imageUrl，尺寸：${state.result}")
-                    }
+                        .rotate(rotation.value)
+                        .background(brush = Brush.linearGradient(gradientColors))
                 )
             }
 
@@ -553,9 +648,9 @@ fun MusicBackground(
 
 
 // ========== Preview（覆盖不同场景+明暗主题） ==========
-/** 浅色主题 - 图片加载成功场景 */
+/** 浅色主题 */
 @Preview(
-    name = "MusicBackground - 浅色主题（加载成功）",
+    name = "MusicBackground - 浅色主题（占位渐变封面）",
     showBackground = true,
     showSystemUi = true // 显示系统状态栏，更贴近实际效果
 )
@@ -563,15 +658,15 @@ fun MusicBackground(
 fun MusicBackground_Light_Success_Preview() {
     CustomMusicTheme(darkTheme = false) {
         MusicBackground(
-            imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png",
+            title = "赛博迷幻夜未央",
             isPlaying = true
         )
     }
 }
 
-/** 深色主题 - 图片加载失败/空URL场景 */
+/** 深色主题 */
 @Preview(
-    name = "MusicBackground - 深色主题（加载失败）",
+    name = "MusicBackground - 深色主题（占位渐变封面）",
     showBackground = true,
     showSystemUi = true
 )
@@ -579,7 +674,7 @@ fun MusicBackground_Light_Success_Preview() {
 fun MusicBackground_Dark_Error_Preview() {
     CustomMusicTheme(darkTheme = true) {
         MusicBackground(
-            imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png",
+            title = "午夜霓虹",
             isPlaying = true
         )
     }
@@ -597,7 +692,7 @@ fun MusicBackground_Dark_Error_Preview() {
 fun MusicBackground_CustomSize_Preview() {
     CustomMusicTheme(darkTheme = false) {
         MusicBackground(
-            imageUrl = "https://st-gdx.dancf.com/gaodingx/0/uxms/design/20200611-190838-9d6f.png",
+            title = "电流涌动",
             isPlaying = true
         )
     }

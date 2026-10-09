@@ -151,6 +151,7 @@ dependencies {
     implementation("androidx.media3:media3-ui:1.9.0") // UI组件（StyledPlayerView）
     implementation("androidx.media3:media3-ui-compose:1.9.0") // Compose适配
     implementation("androidx.media3:media3-common:1.9.0") // 核心基础类
+    implementation("androidx.media3:media3-session:1.9.0") // 媒体会话（系统通知/锁屏/控制中心）
 
     // Firebase
     implementation platform('com.google.firebase:firebase-bom:33.1.2')
