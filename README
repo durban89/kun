@@ -1,16 +1,58 @@
-# 文件来源
+# 🎵 Kun Music
 
-- 本地文件播放
+本地 + 网络音乐播放器（Android），深色霓虹「赛博迷幻」风格，支持 Google 账号登录。
 
-- 网络文件播放
+## 技术栈
 
-# 文件类型
+- Kotlin + Jetpack Compose（Material3，Compose BOM 2024.05.00）
+- 播放：AndroidX Media3 ExoPlayer（1.9.0）
+- 网络：Coil（封面加载）
+- 数据：DataStore（本地设置/收藏），kotlinx-serialization
+- 登录：Firebase Auth + Google Play Services Auth
+- 构建：Gradle 8.13，AGP（应用 plugin），compileSdk 35 / targetSdk 33 / minSdk 24
 
-- 播放mp3
+## 功能
 
-## ---
+- 本地文件播放（MediaStore 授权，Android 13+ 单独申请音频/视频/图片权限）
+- 网络文件播放（URL）
+- 内置（bundled）曲目播放与收藏持久化
+- 播放主界面：封面高斯模糊背景、歌词、渐变色进度条
 
-# 🎵 音乐类 App “赛博迷幻流派”视觉设计规范
+## 构建
+
+```bash
+./gradlew :app:assembleDebug      # debug APK
+./gradlew :app:assembleRelease    # release APK
+```
+
+产物位置：`app/build/outputs/apk/{debug,release}/`
+
+## 签名（密钥不在仓库内）
+
+发布签名密钥位于项目外 `~/keystores/kun/`，随私有 dotfiles 仓库同步恢复：
+
+```
+~/keystores/kun/
+├── release.jks                 # JKS 签名文件（alias: kun）
+├── keystore.properties         # storeFile/storePassword/keyAlias/keyPassword
+└── google-services.json        # Firebase 配置
+```
+
+- `app/build.gradle` 通过 `System.getProperty('user.home')` 读取 `~/keystores/kun/keystore.properties`；文件缺失时自动回退为**未签名**构建。
+- debug 与 release 共用同一把签名（同一指纹），Google 登录无需分别绑定。
+- `google-services.json` 不在仓库内，构建时由 `copyGoogleServices` 任务自动从 `~/keystores/kun/` 拷贝到 `app/google-services.json`（该插件只认此固定路径）。
+
+## Firebase / Google 登录
+
+在 Firebase 控制台注册应用 SHA-1（release 指纹）后重新下载 `google-services.json` 放入 `~/keystores/kun/` 即可。
+
+## 分支
+
+默认分支：`main`（原 `master` 已废弃）。服务器部署清单 `repos.txt` 已同步指向 `main`。
+
+---
+
+# 🎵 「赛博迷幻流派」视觉设计规范
 
 本方案采用全暗黑沉浸式背景，搭配极具呼吸感与流动感的霓虹渐变色。视觉上能够营造出深夜 Livehouse、电音派对的氛围，完美契合流行、电子、嘻哈或独立音乐的调性，同时能最大程度突出色彩斑斓的专辑封面。
 
